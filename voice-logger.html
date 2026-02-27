@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#4A1A8A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Magic Voice Logger</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+    :root {
+      --purple-deep: #4A1A8A;
+      --purple-mid: #6B3FA0;
+      --purple-light: #8B5FBF;
+      --purple-wash: #F3EDF9;
+      --purple-tint: #E8DDF2;
+      --gold: #D4940A;
+      --gold-bright: #E8A83E;
+      --gold-light: #F5DFA6;
+      --gold-wash: #FDF6E3;
+      --gold-text: #5C4003;
+      --bg: #FAFAFA;
+      --bg-card: #FFFFFF;
+      --text-primary: #1a1a1a;
+      --text-secondary: #555;
+      --text-muted: #888;
+      --border: #e0e0e0;
+      --success: #10B981;
+      --success-bg: #ECFDF5;
+      --warning: #F59E0B;
+      --warning-bg: #FFFBEB;
+      --danger: #EF4444;
+      --danger-bg: #FEF2F2;
+      --info: #3B82F6;
+      --info-bg: #EFF6FF;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ============ LAYOUT ============ */
+
+    .app-container {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 16px;
+      padding-bottom: 100px;
+    }
+
+    .header {
+      background: var(--purple-deep);
+      color: #fff;
+      padding: 16px 20px;
+      border-radius: var(--radius) var(--radius) 0 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header h1 {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .header .back-btn {
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: #fff;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .header .back-btn:hover { background: rgba(255,255,255,0.25); }
+
+    .content-area {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 var(--radius) var(--radius);
+      padding: 20px;
+    }
+
+    /* ============ STEP INDICATOR ============ */
+
+    .steps {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 20px;
+    }
+
+    .step-dot {
+      flex: 1;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--border);
+      transition: background 0.3s;
+    }
+
+    .step-dot.active { background: var(--purple-deep); }
+    .step-dot.complete { background: var(--success); }
+
+    /* ============ CARDS ============ */
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .card-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .card-subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* ============ MERCHANT SELECTOR ============ */
+
+    .merchant-search {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .merchant-search:focus { border-color: var(--purple-mid); }
+
+    .merchant-list {
+      max-height: 240px;
+      overflow-y: auto;
+      margin-top: 8px;
+    }
+
+    .merchant-item {
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.15s;
+    }
+
+    .merchant-item:hover { background: var(--purple-wash); }
+    .merchant-item.selected { background: var(--purple-tint); border: 1px solid var(--purple-light); }
+
+    .merchant-item .name { font-weight: 500; font-size: 14px; }
+    .merchant-item .meta { font-size: 12px; color: var(--text-muted); }
+
+    .skip-select-btn {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin-top: 12px;
+      background: var(--gold-wash);
+      border: 1px solid var(--gold-light);
+      border-radius: var(--radius-sm);
+      color: var(--gold-text);
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .skip-select-btn:hover { background: var(--gold-light); }
+
+    /* ============ RECORDING (File Input) ============ */
+
+    .recorder-area {
+      text-align: center;
+      padding: 24px 0;
+    }
+
+    .record-upload-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      max-width: 320px;
+      padding: 16px 24px;
+      border: 2px dashed var(--purple-light);
+      border-radius: var(--radius);
+      background: var(--purple-wash);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .record-upload-btn:hover, .record-upload-btn:active {
+      border-color: var(--purple-deep);
+      background: var(--purple-tint);
+    }
+
+    .record-upload-btn .icon {
+      font-size: 28px;
+    }
+
+    .record-upload-btn .label {
+      text-align: left;
+    }
+
+    .record-upload-btn .label-main {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--purple-deep);
+    }
+
+    .record-upload-btn .label-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .record-upload-btn input[type="file"] {
+      display: none;
+    }
+
+    .audio-preview {
+      margin-top: 16px;
+      display: none;
+    }
+
+    .audio-preview.visible { display: block; }
+
+    .audio-preview-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--success-bg);
+      border: 1px solid var(--success);
+      border-radius: var(--radius-sm);
+    }
+
+    .audio-preview-card .check { font-size: 20px; }
+
+    .audio-preview-card .info {
+      flex: 1;
+    }
+
+    .audio-preview-card .info .filename {
+      font-size: 13px;
+      font-weight: 500;
+      color: #065F46;
+    }
+
+    .audio-preview-card .info .meta {
+      font-size: 11px;
+      color: #059669;
+    }
+
+    .audio-preview-card .remove-btn {
+      background: none;
+      border: none;
+      font-size: 18px;
+      color: #999;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .record-hint {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 16px;
+      padding: 8px 12px;
+      background: var(--info-bg);
+      border-radius: var(--radius-sm);
+    }
+
+    /* ============ ANALYSIS / LOADING ============ */
+
+    .loading-container {
+      text-align: center;
+      padding: 40px 0;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--purple-deep);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* ============ DEAL HEALTH ============ */
+
+    .deal-health {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 16px;
+    }
+
+    .deal-health.good { background: var(--success-bg); }
+    .deal-health.moderate { background: var(--warning-bg); }
+    .deal-health.poor { background: var(--danger-bg); }
+
+    .deal-score {
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .deal-score-label {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .deal-summary {
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    /* ============ COACHING PANEL ============ */
+
+    .coaching-panel {
+      border: 2px solid var(--gold);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .coaching-header {
+      background: var(--gold-wash);
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--gold-light);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .coaching-header h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gold-text);
+    }
+
+    .coaching-messages {
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    .coaching-msg {
+      margin-bottom: 12px;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .coaching-msg.coach {
+      background: var(--gold-wash);
+      border: 1px solid var(--gold-light);
+      margin-right: 24px;
+    }
+
+    .coaching-msg.user {
+      background: var(--purple-wash);
+      border: 1px solid var(--purple-tint);
+      margin-left: 24px;
+    }
+
+    .coaching-input-area {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      background: #fff;
+    }
+
+    .coaching-input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      resize: none;
+      outline: none;
+      min-height: 40px;
+      max-height: 120px;
+    }
+
+    .coaching-input:focus { border-color: var(--gold); }
+
+    /* ============ APPROVAL SCREEN ============ */
+
+    .update-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .update-card-header {
+      padding: 10px 14px;
+      background: var(--purple-wash);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--purple-deep);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .update-card-body {
+      padding: 12px 14px;
+    }
+
+    .update-values {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .update-current {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-decoration: line-through;
+      flex: 1;
+    }
+
+    .update-arrow { color: var(--text-muted); font-size: 14px; }
+
+    .update-proposed-input {
+      flex: 1;
+      padding: 6px 10px;
+      border: 1px solid var(--purple-tint);
+      border-radius: 6px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      background: var(--purple-wash);
+      outline: none;
+    }
+
+    .update-proposed-input:focus { border-color: var(--purple-mid); }
+
+    .update-reasoning {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .update-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .observation-card {
+      padding: 12px 14px;
+      background: var(--info-bg);
+      border-radius: var(--radius-sm);
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .observation-card .insight { font-weight: 500; margin-bottom: 4px; }
+    .observation-card .suggestion { color: var(--text-secondary); }
+
+    /* ============ BUTTONS ============ */
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+    }
+
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-primary {
+      background: var(--purple-deep);
+      color: #fff;
+    }
+
+    .btn-primary:hover:not(:disabled) { background: var(--purple-mid); }
+
+    .btn-success {
+      background: var(--success);
+      color: #fff;
+    }
+
+    .btn-success:hover:not(:disabled) { background: #059669; }
+
+    .btn-outline {
+      background: #fff;
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-outline:hover:not(:disabled) { background: var(--bg); }
+
+    .btn-gold {
+      background: var(--gold);
+      color: #fff;
+    }
+
+    .btn-gold:hover:not(:disabled) { background: var(--gold-bright); }
+
+    .btn-block { display: flex; width: 100%; }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .btn-group .btn { flex: 1; }
+
+    /* ============ SECTION VISIBILITY ============ */
+
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ============ STATUS BADGE ============ */
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .badge-success { background: var(--success-bg); color: #065F46; }
+    .badge-warning { background: var(--warning-bg); color: #92400E; }
+    .badge-danger { background: var(--danger-bg); color: #991B1B; }
+    .badge-info { background: var(--info-bg); color: #1E40AF; }
+
+    /* ============ TRANSCRIPT DISPLAY ============ */
+
+    .transcript-box {
+      background: #f8f8f8;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      font-size: 13px;
+      line-height: 1.6;
+      max-height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    /* ============ TOGGLE SWITCH ============ */
+
+    .toggle {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      cursor: pointer;
+    }
+
+    .toggle input { display: none; }
+
+    .toggle-slider {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--border);
+      border-radius: 22px;
+      transition: 0.2s;
+    }
+
+    .toggle-slider:before {
+      content: '';
+      position: absolute;
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: 0.2s;
+    }
+
+    .toggle input:checked + .toggle-slider { background: var(--success); }
+    .toggle input:checked + .toggle-slider:before { transform: translateX(18px); }
+
+    /* ============ CONFIRMATION ============ */
+
+    .confirmation {
+      text-align: center;
+      padding: 32px 0;
+    }
+
+    .confirmation-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--success-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 28px;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- HEADER -->
+    <div class="header">
+      <button class="back-btn" onclick="goBack()" title="Back to Customer AI">←</button>
+      <h1>📞 Log a Call</h1>
+    </div>
+
+    <div class="content-area">
+
+      <!-- STEP INDICATOR -->
+      <div class="steps">
+        <div class="step-dot" id="dot-1"></div>
+        <div class="step-dot" id="dot-2"></div>
+        <div class="step-dot" id="dot-3"></div>
+        <div class="step-dot" id="dot-4"></div>
+        <div class="step-dot" id="dot-5"></div>
+      </div>
+
+      <!-- ===== STEP 1: MERCHANT SELECTION + RECORDING ===== -->
+      <div class="section active" id="step-select">
+        <div class="card-label">Step 1 of 5</div>
+        <h2 style="font-size:18px; margin-bottom:4px;">Who did you call?</h2>
+        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px;">
+          Select the merchant, or skip to let AI identify them from your voice note.
+        </p>
+
+        <input type="text" class="merchant-search" id="merchantSearch"
+          placeholder="Search merchants..." oninput="filterMerchants()">
+
+        <div class="merchant-list" id="merchantList"></div>
+
+        <button class="skip-select-btn" onclick="skipSelection()">
+          Skip — let AI identify the merchant from my recording
+        </button>
+
+        <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px;">
+          <div class="card-label">Record your call debrief</div>
+
+          <div class="recorder-area">
+            <!-- Primary: styled file input — AUDIO ONLY -->
+            <label class="record-upload-btn" id="recordUploadBtn">
+              <span class="icon">🎙️</span>
+              <span class="label">
+                <span class="label-main" id="uploadLabel">Record or upload voice note</span>
+                <span class="label-sub" id="uploadSublabel">Tap to open Voice Memos or select an audio file</span>
+              </span>
+              <input type="file" id="audioFileInput" accept="audio/*,.m4a,.mp3,.wav,.webm,.ogg,.aac,.caf"
+                onchange="handleAudioFile(this)">
+            </label>
+
+            <!-- Audio preview (shown after file selected) -->
+            <div class="audio-preview" id="audioPreview">
+              <div class="audio-preview-card">
+                <span class="check">✅</span>
+                <div class="info">
+                  <div class="filename" id="audioFilename"></div>
+                  <div class="meta" id="audioMeta"></div>
+                </div>
+                <button class="remove-btn" onclick="removeAudio()" title="Remove">✕</button>
+              </div>
+            </div>
+
+            <div class="record-hint" id="recordHint">
+              💡 Give a quick verbal debrief: what you discussed, what the merchant said, any objections, and next steps. 30 seconds to 2 minutes is ideal.
+            </div>
+
+            <!-- Platform-specific tip -->
+            <div class="record-hint" style="margin-top:8px; background:var(--gold-wash);" id="platformTip"></div>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-primary btn-block" id="submitRecordingBtn"
+            onclick="submitRecording()" disabled>
+            Analyse Call →
+          </button>
+        </div>
+      </div>
+
+      <!-- ===== STEP 2: PROCESSING ===== -->
+      <div class="section" id="step-processing">
+        <div class="loading-container">
+          <div class="spinner"></div>
+          <div class="loading-text" id="processingText">Transcribing your voice note...</div>
+        </div>
+      </div>
+
+      <!-- ===== STEP 2b: MERCHANT DISAMBIGUATION ===== -->
+      <div class="section" id="step-disambiguate">
+        <div class="card-label">Merchant Match</div>
+        <h2 style="font-size:18px; margin-bottom:4px;">Which merchant?</h2>
+        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px;">
+          We found possible matches from your voice note. Select the correct one.
+        </p>
+
+        <div id="candidateList"></div>
+
+        <div style="margin-top:12px;">
+          <p style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">Not listed? Search:</p>
+          <input type="text" class="merchant-search" id="disambigSearch"
+            placeholder="Search all merchants..." oninput="filterDisambigMerchants()">
+          <div class="merchant-list" id="disambigFullList" style="display:none;"></div>
+        </div>
+      </div>
+
+      <!-- ===== STEP 3: ANALYSIS + COACHING ===== -->
+      <div class="section" id="step-coaching">
+        <div class="card-label">Step 3 of 5</div>
+
+        <!-- Merchant banner -->
+        <div class="card" id="merchantBanner">
+          <div class="card-label">Merchant</div>
+          <div class="card-title" id="merchantBannerName"></div>
+          <div class="card-subtitle" id="merchantBannerMeta"></div>
+        </div>
+
+        <!-- Transcript (collapsible) -->
+        <details style="margin-bottom:16px;">
+          <summary style="font-size:13px; color:var(--text-muted); cursor:pointer;">
+            View transcript
+          </summary>
+          <div class="transcript-box" id="transcriptDisplay"></div>
+        </details>
+
+        <!-- Deal Health -->
+        <div class="deal-health" id="dealHealthCard">
+          <div>
+            <div class="deal-score" id="dealScore"></div>
+            <div class="deal-score-label">/10</div>
+          </div>
+          <div class="deal-summary" id="dealSummary"></div>
+        </div>
+
+        <!-- Coaching Panel (shown if weak points exist) -->
+        <div id="coachingSection" style="display:none;">
+          <div class="coaching-panel">
+            <div class="coaching-header">
+              <span>🎯</span>
+              <h3>Deal Coach</h3>
+              <span class="badge badge-warning" id="weakPointsBadge"></span>
+            </div>
+            <div class="coaching-messages" id="coachingMessages"></div>
+            <div class="coaching-input-area" id="coachingInputArea">
+              <textarea class="coaching-input" id="coachingInput"
+                placeholder="Your response..." rows="1"
+                onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendCoachingReply();}"></textarea>
+              <button class="btn btn-gold" onclick="sendCoachingReply()" id="coachingSendBtn">
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- No coaching needed message -->
+        <div id="noCoachingSection" style="display:none;">
+          <div class="card" style="background:var(--success-bg); border-color:var(--success);">
+            <div class="card-title" style="color:#065F46;">✅ No coaching needed</div>
+            <div class="card-subtitle" style="color:#065F46;">
+              The deal looks solid. Proceed to review suggested updates.
+            </div>
+          </div>
+        </div>
+
+        <!-- Proceed button (shown after coaching complete or no coaching) -->
+        <div class="btn-group" id="proceedToApproval" style="display:none;">
+          <button class="btn btn-primary btn-block" onclick="showApprovalScreen()">
+            Review Updates →
+          </button>
+        </div>
+      </div>
+
+      <!-- ===== STEP 4: APPROVAL SCREEN ===== -->
+      <div class="section" id="step-approval">
+        <div class="card-label">Step 4 of 5</div>
+        <h2 style="font-size:18px; margin-bottom:4px;">Review & Approve</h2>
+        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px;">
+          Toggle updates on/off and edit values before committing.
+        </p>
+
+        <div id="proposedUpdatesList"></div>
+
+        <div id="observationsList" style="display:none;">
+          <div class="card-label" style="margin-top:20px;">Observations (informational)</div>
+          <div id="observationsContent"></div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-outline" onclick="showSection('step-coaching')">← Back</button>
+          <button class="btn btn-success" onclick="commitUpdates()" id="commitBtn">
+            ✓ Commit to Pipeline
+          </button>
+        </div>
+      </div>
+
+      <!-- ===== STEP 5: CONFIRMATION ===== -->
+      <div class="section" id="step-done">
+        <div class="confirmation">
+          <div class="confirmation-icon">✅</div>
+          <h2 style="font-size:20px; margin-bottom:8px;">Call Logged</h2>
+          <p style="font-size:14px; color:var(--text-secondary); margin-bottom:4px;"
+            id="doneMessage"></p>
+          <p style="font-size:13px; color:var(--text-muted);" id="doneDetails"></p>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-outline btn-block" onclick="resetFlow()">
+            Log Another Call
+          </button>
+          <button class="btn btn-primary btn-block" onclick="goBack()">
+            Back to Customer AI
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+// ============================================================
+// PWA API CONFIGURATION
+// Shares the same localStorage key as the main Customer AI PWA
+// ============================================================
+
+var STORAGE_KEY = 'magic_customer_ai_url';
+var API_URL = localStorage.getItem(STORAGE_KEY) || '';
+
+function callServer(action, params) {
+  if (!API_URL) {
+    return Promise.reject(new Error('API URL not configured. Open Customer AI first to set it.'));
+  }
+  var body = { action: action };
+  if (params !== undefined) body.params = params;
+
+  return fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(body),
+    redirect: 'follow'
+  }).then(function(response) {
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    return response.json();
+  });
+}
+
+
+// ============================================================
+// STATE
+// ============================================================
+
+var state = {
+  currentStep: 'step-select',
+  selectedMerchantId: null,
+  selectedMerchantName: null,
+  allMerchants: [],
+  userName: '',
+
+  // Audio capture (file-based)
+  audioBase64: null,
+  audioMimeType: null,
+  audioFileName: null,
+
+  // Analysis results
+  transcript: '',
+  merchantRecord: null,
+  interactionHistory: [],
+  analysis: null,
+
+  // Coaching
+  coachingHistory: [],
+  coachingSummary: null,
+
+  // Approval
+  approvedUpdates: []
+};
+
+
+// ============================================================
+// INITIALIZATION
+// ============================================================
+
+window.addEventListener('DOMContentLoaded', function() {
+  // Check API URL
+  if (!API_URL) {
+    alert('No API URL configured. Please open the main Customer AI app first to set your server URL.');
+    return;
+  }
+
+  // Get userName from URL parameter or prompt
+  var params = new URLSearchParams(window.location.search);
+  state.userName = params.get('user') || '';
+
+  // Platform-specific recording tips
+  var tipEl = document.getElementById('platformTip');
+  var ua = navigator.userAgent || '';
+  if (/iPhone|iPad|iPod/.test(ua)) {
+    tipEl.innerHTML = '📱 <strong>iPhone tip:</strong> Open the <strong>Voice Memos</strong> app, record your debrief, then come back here and tap the button above. Select your recording from <strong>Recents</strong> in the file picker.';
+  } else if (/Android/.test(ua)) {
+    tipEl.innerHTML = '📱 <strong>Android tip:</strong> Tap the button above — your phone\'s audio recorder should open. Record your debrief and confirm.';
+  } else {
+    tipEl.innerHTML = '💻 <strong>Desktop:</strong> Record a voice note using any app (Voice Memos, Audacity, your phone), then upload the audio file here.';
+  }
+
+  // Load Pipeline merchants for selection
+  callServer('getMerchantList')
+    .then(function(result) {
+      if (result.ok) {
+        state.allMerchants = result.merchants || [];
+      } else {
+        state.allMerchants = result || [];  // backward compat if array returned directly
+      }
+      renderMerchantList(state.allMerchants, 'merchantList');
+    })
+    .catch(function(err) {
+      console.error('Failed to load merchants:', err);
+    });
+});
+
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+
+function showSection(sectionId) {
+  var sections = document.querySelectorAll('.section');
+  for (var i = 0; i < sections.length; i++) {
+    sections[i].classList.remove('active');
+  }
+  document.getElementById(sectionId).classList.add('active');
+  state.currentStep = sectionId;
+  updateStepDots();
+}
+
+function updateStepDots() {
+  var stepMap = {
+    'step-select': 1, 'step-processing': 2, 'step-disambiguate': 2,
+    'step-coaching': 3, 'step-approval': 4, 'step-done': 5
+  };
+  var current = stepMap[state.currentStep] || 1;
+
+  for (var i = 1; i <= 5; i++) {
+    var dot = document.getElementById('dot-' + i);
+    dot.className = 'step-dot';
+    if (i < current) dot.classList.add('complete');
+    if (i === current) dot.classList.add('active');
+  }
+}
+
+function goBack() {
+  window.location.href = './index.html';
+}
+
+
+// ============================================================
+// MERCHANT SELECTION
+// ============================================================
+
+function renderMerchantList(merchants, containerId) {
+  var container = document.getElementById(containerId);
+  container.innerHTML = '';
+
+  for (var i = 0; i < merchants.length; i++) {
+    var m = merchants[i];
+    var div = document.createElement('div');
+    div.className = 'merchant-item';
+    div.setAttribute('data-id', m.id);
+    div.innerHTML = '<div>'
+      + '<div class="name">' + escapeHtml(m.name) + '</div>'
+      + '<div class="meta">' + escapeHtml(m.id) + ' · ' + escapeHtml(m.category || '')
+      + ' · ' + escapeHtml(m.neighbourhood || '') + '</div>'
+      + '</div>'
+      + '<span class="badge badge-info">' + escapeHtml(m.status || '') + '</span>';
+
+    div.onclick = (function(merchant) {
+      return function() { selectMerchant(merchant.id, merchant.name); };
+    })(m);
+
+    container.appendChild(div);
+  }
+}
+
+function filterMerchants() {
+  var query = document.getElementById('merchantSearch').value.toLowerCase().trim();
+  var filtered = state.allMerchants.filter(function(m) {
+    return m.name.toLowerCase().indexOf(query) > -1
+      || m.id.toLowerCase().indexOf(query) > -1
+      || (m.category || '').toLowerCase().indexOf(query) > -1
+      || (m.contactName || '').toLowerCase().indexOf(query) > -1;
+  });
+  renderMerchantList(filtered, 'merchantList');
+}
+
+function selectMerchant(id, name) {
+  state.selectedMerchantId = id;
+  state.selectedMerchantName = name;
+
+  // Highlight selected
+  var items = document.querySelectorAll('#merchantList .merchant-item');
+  for (var i = 0; i < items.length; i++) {
+    items[i].classList.remove('selected');
+    if (items[i].getAttribute('data-id') === id) {
+      items[i].classList.add('selected');
+    }
+  }
+
+  updateSubmitButton();
+}
+
+function skipSelection() {
+  state.selectedMerchantId = null;
+  state.selectedMerchantName = null;
+
+  // Deselect all
+  var items = document.querySelectorAll('#merchantList .merchant-item');
+  for (var i = 0; i < items.length; i++) {
+    items[i].classList.remove('selected');
+  }
+
+  updateSubmitButton();
+}
+
+function updateSubmitButton() {
+  var btn = document.getElementById('submitRecordingBtn');
+  btn.disabled = !state.audioBase64;
+}
+
+
+// ============================================================
+// AUDIO CAPTURE (File Input)
+// ============================================================
+
+function handleAudioFile(input) {
+  var file = input.files[0];
+  if (!file) return;
+
+  var fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
+  var fileType = file.type || '';
+
+  // Warn if it's a video file (iOS may still produce .MOV in some flows)
+  if (fileType.indexOf('video') > -1) {
+    var proceed = confirm(
+      'This looks like a video file (' + fileSizeMB + ' MB). '
+      + 'Video files are much larger than audio.\n\n'
+      + 'For faster processing, try recording with Voice Memos (iPhone) '
+      + 'or a voice recorder app instead.\n\n'
+      + 'Use this file anyway?'
+    );
+    if (!proceed) {
+      input.value = '';
+      return;
+    }
+  }
+
+  state.audioFileName = file.name;
+  state.audioMimeType = fileType || 'audio/mp4';
+
+  // Show preview
+  document.getElementById('audioFilename').textContent = file.name;
+  document.getElementById('audioMeta').textContent =
+    (fileType || 'unknown type') + ' · ' + fileSizeMB + ' MB';
+  document.getElementById('audioPreview').classList.add('visible');
+
+  // Update upload button appearance
+  document.getElementById('uploadLabel').textContent = 'Change recording';
+  document.getElementById('uploadSublabel').textContent = 'Tap to select a different file';
+
+  // Warn if file is very large (>10MB)
+  if (file.size > 10 * 1024 * 1024) {
+    alert('This file is ' + fileSizeMB + ' MB. Large files may take longer to process. '
+      + 'For best results, keep recordings under 2 minutes.');
+  }
+
+  // Convert to base64
+  var reader = new FileReader();
+  reader.onloadend = function() {
+    state.audioBase64 = reader.result.split(',')[1];
+    updateSubmitButton();
+  };
+  reader.onerror = function() {
+    alert('Error reading file. Please try again.');
+    removeAudio();
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeAudio() {
+  state.audioBase64 = null;
+  state.audioMimeType = null;
+  state.audioFileName = null;
+
+  document.getElementById('audioFileInput').value = '';
+  document.getElementById('audioPreview').classList.remove('visible');
+  document.getElementById('uploadLabel').textContent = 'Record or upload voice note';
+  document.getElementById('uploadSublabel').textContent = 'Tap to record a voice memo or select an audio file';
+
+  updateSubmitButton();
+}
+
+
+// ============================================================
+// SUBMIT RECORDING FOR ANALYSIS
+// ============================================================
+
+function submitRecording() {
+  if (!state.audioBase64) return;
+
+  showSection('step-processing');
+  updateProcessingText('Transcribing your voice note...');
+
+  // If no username yet, use a prompt
+  if (!state.userName) {
+    state.userName = prompt('Enter your name:') || 'Team Member';
+  }
+
+  callServer('processVoiceNote', {
+    audioBase64: state.audioBase64,
+    audioMimeType: state.audioMimeType,
+    merchantId: state.selectedMerchantId,
+    userName: state.userName
+  }).then(function(result) {
+    handleProcessingResult(result);
+  }).catch(function(err) {
+    alert('Error: ' + (err.message || err));
+    showSection('step-select');
+  });
+}
+
+function handleProcessingResult(result) {
+  if (!result.ok) {
+    alert('Error: ' + result.error);
+    showSection('step-select');
+    return;
+  }
+
+  state.transcript = result.transcript || '';
+
+  // Does user need to select a merchant?
+  if (result.needsMerchantSelection) {
+    showDisambiguation(result.merchantCandidates || [], result.transcriptionAnalysis);
+    return;
+  }
+
+  // Analysis complete — proceed to coaching
+  state.merchantRecord = result.merchantRecord;
+  state.interactionHistory = result.interactionHistory || [];
+  state.analysis = result.analysis;
+
+  showCoachingStep();
+}
+
+function updateProcessingText(text) {
+  document.getElementById('processingText').textContent = text;
+}
+
+
+// ============================================================
+// MERCHANT DISAMBIGUATION
+// ============================================================
+
+function showDisambiguation(candidates, transcriptionAnalysis) {
+  showSection('step-disambiguate');
+
+  var container = document.getElementById('candidateList');
+  container.innerHTML = '';
+
+  if (candidates.length > 0) {
+    for (var i = 0; i < candidates.length; i++) {
+      var c = candidates[i];
+      var div = document.createElement('div');
+      div.className = 'merchant-item';
+      div.innerHTML = '<div>'
+        + '<div class="name">' + escapeHtml(c.name) + '</div>'
+        + '<div class="meta">' + escapeHtml(c.id) + ' · ' + escapeHtml(c.category || '')
+        + ' · ' + escapeHtml(c.neighbourhood || '') + '</div>'
+        + '</div>'
+        + '<span class="badge badge-info">' + escapeHtml(c.status || '') + '</span>';
+
+      div.onclick = (function(cand) {
+        return function() { confirmMerchantFromDisambig(cand.id, cand.name); };
+      })(c);
+
+      container.appendChild(div);
+    }
+  } else {
+    container.innerHTML = '<p style="font-size:13px; color:var(--text-muted); padding:8px;">No automatic matches found. Search below.</p>';
+  }
+
+  // Also render full merchant list for fallback search
+  renderMerchantList(state.allMerchants, 'disambigFullList');
+}
+
+function filterDisambigMerchants() {
+  var query = document.getElementById('disambigSearch').value.toLowerCase().trim();
+  var list = document.getElementById('disambigFullList');
+
+  if (query.length > 0) {
+    list.style.display = 'block';
+    var filtered = state.allMerchants.filter(function(m) {
+      return m.name.toLowerCase().indexOf(query) > -1
+        || m.id.toLowerCase().indexOf(query) > -1;
+    });
+    // Re-render with click handlers that call confirmMerchantFromDisambig
+    list.innerHTML = '';
+    for (var i = 0; i < filtered.length; i++) {
+      var m = filtered[i];
+      var div = document.createElement('div');
+      div.className = 'merchant-item';
+      div.innerHTML = '<div>'
+        + '<div class="name">' + escapeHtml(m.name) + '</div>'
+        + '<div class="meta">' + escapeHtml(m.id) + ' · ' + escapeHtml(m.category || '') + '</div>'
+        + '</div>';
+      div.onclick = (function(merchant) {
+        return function() { confirmMerchantFromDisambig(merchant.id, merchant.name); };
+      })(m);
+      list.appendChild(div);
+    }
+  } else {
+    list.style.display = 'none';
+  }
+}
+
+function confirmMerchantFromDisambig(merchantId, merchantName) {
+  showSection('step-processing');
+  updateProcessingText('Analysing call with ' + merchantName + '...');
+
+  callServer('completeAnalysis', {
+    merchantId: merchantId,
+    transcript: state.transcript
+  }).then(function(result) {
+    if (!result.ok) {
+      alert('Error: ' + result.error);
+      showSection('step-disambiguate');
+      return;
+    }
+
+    state.merchantRecord = result.merchantRecord;
+    state.interactionHistory = result.interactionHistory || [];
+    state.analysis = result.analysis;
+    showCoachingStep();
+  }).catch(function(err) {
+    alert('Error: ' + (err.message || err));
+    showSection('step-disambiguate');
+  });
+}
+
+
+// ============================================================
+// STEP 3: COACHING
+// ============================================================
+
+function showCoachingStep() {
+  showSection('step-coaching');
+
+  // Populate merchant banner
+  document.getElementById('merchantBannerName').textContent =
+    state.merchantRecord.name + ' (' + state.merchantRecord.id + ')';
+  document.getElementById('merchantBannerMeta').textContent =
+    state.merchantRecord.category + ' · ' + state.merchantRecord.neighbourhood
+    + ' · ' + state.merchantRecord.status;
+
+  // Show transcript
+  document.getElementById('transcriptDisplay').textContent = state.transcript;
+
+  // Deal health card
+  var score = state.analysis.dealHealth.score;
+  var healthCard = document.getElementById('dealHealthCard');
+  healthCard.className = 'deal-health ' + (score >= 7 ? 'good' : score >= 4 ? 'moderate' : 'poor');
+  document.getElementById('dealScore').textContent = score;
+  document.getElementById('dealSummary').innerHTML =
+    '<strong>' + state.analysis.dealHealth.momentum + '</strong> — '
+    + escapeHtml(state.analysis.dealHealth.summary);
+
+  // Evaluate coaching need
+  var coachingNeed = { needsCoaching: false, weakPointCount: 0 };
+  if (state.analysis.weakPoints && state.analysis.weakPoints.length > 0) {
+    coachingNeed = { needsCoaching: true, weakPointCount: state.analysis.weakPoints.length };
+  }
+
+  if (coachingNeed.needsCoaching) {
+    document.getElementById('coachingSection').style.display = 'block';
+    document.getElementById('noCoachingSection').style.display = 'none';
+    document.getElementById('proceedToApproval').style.display = 'none';
+    document.getElementById('weakPointsBadge').textContent =
+      coachingNeed.weakPointCount + ' area' + (coachingNeed.weakPointCount > 1 ? 's' : '') + ' to address';
+
+    // Start coaching session
+    startCoachingUI();
+  } else {
+    document.getElementById('coachingSection').style.display = 'none';
+    document.getElementById('noCoachingSection').style.display = 'block';
+    document.getElementById('proceedToApproval').style.display = 'flex';
+    state.coachingSummary = {
+      summary: 'No significant weak points detected.',
+      keyInsight: 'Deal progressing well.',
+      revisedNextAction: ''
+    };
+  }
+}
+
+function startCoachingUI() {
+  state.coachingHistory = [];
+  document.getElementById('coachingMessages').innerHTML = '';
+
+  // Add a loading indicator
+  addCoachingMessage('coach', '...');
+
+  callServer('startCoaching', {
+    transcript: state.transcript,
+    merchantRecord: state.merchantRecord,
+    interactionHistory: state.interactionHistory,
+    analysis: state.analysis,
+    userName: state.userName
+  }).then(function(result) {
+    // Remove loading indicator
+    var msgs = document.getElementById('coachingMessages');
+    if (msgs.lastChild) msgs.removeChild(msgs.lastChild);
+
+    if (!result.ok) {
+      addCoachingMessage('coach', 'Sorry, coaching could not start: ' + result.error);
+      document.getElementById('proceedToApproval').style.display = 'flex';
+      return;
+    }
+
+    // The initial user message was built by startCoachingSession
+    state.coachingHistory.push({
+      role: 'user',
+      text: 'I just recorded a voice note about my call with ' + state.merchantRecord.name + '.'
+    });
+    state.coachingHistory.push({ role: 'assistant', text: result.text });
+
+    addCoachingMessage('coach', result.text);
+
+    if (result.isComplete) {
+      onCoachingComplete(result.coachingSummary);
+    }
+  }).catch(function(err) {
+    var msgs = document.getElementById('coachingMessages');
+    if (msgs.lastChild) msgs.removeChild(msgs.lastChild);
+    addCoachingMessage('coach', 'Coaching unavailable: ' + (err.message || err));
+    document.getElementById('proceedToApproval').style.display = 'flex';
+  });
+}
+
+function sendCoachingReply() {
+  var input = document.getElementById('coachingInput');
+  var text = input.value.trim();
+  if (!text) return;
+
+  addCoachingMessage('user', text);
+  state.coachingHistory.push({ role: 'user', text: text });
+  input.value = '';
+
+  // Disable input while processing
+  document.getElementById('coachingSendBtn').disabled = true;
+  addCoachingMessage('coach', '...');
+
+  callServer('coachingTurn', {
+    coachingHistory: state.coachingHistory,
+    transcript: state.transcript,
+    merchantRecord: state.merchantRecord,
+    interactionHistory: state.interactionHistory,
+    analysis: state.analysis,
+    userName: state.userName
+  }).then(function(result) {
+    // Remove loading indicator
+    var msgs = document.getElementById('coachingMessages');
+    if (msgs.lastChild) msgs.removeChild(msgs.lastChild);
+    document.getElementById('coachingSendBtn').disabled = false;
+
+    if (!result.ok) {
+      addCoachingMessage('coach', 'Error: ' + result.error);
+      return;
+    }
+
+    state.coachingHistory.push({ role: 'assistant', text: result.text });
+    addCoachingMessage('coach', result.text);
+
+    if (result.isComplete) {
+      onCoachingComplete(result.coachingSummary);
+    }
+  }).catch(function(err) {
+    var msgs = document.getElementById('coachingMessages');
+    if (msgs.lastChild) msgs.removeChild(msgs.lastChild);
+    document.getElementById('coachingSendBtn').disabled = false;
+    addCoachingMessage('coach', 'Error: ' + (err.message || err));
+  });
+}
+
+function addCoachingMessage(role, text) {
+  var container = document.getElementById('coachingMessages');
+  var div = document.createElement('div');
+  div.className = 'coaching-msg ' + role;
+
+  if (text === '...') {
+    div.innerHTML = '<div class="spinner" style="width:20px;height:20px;border-width:2px;margin:0;"></div>';
+  } else {
+    div.innerHTML = formatMarkdown(text);
+  }
+
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function onCoachingComplete(summary) {
+  state.coachingSummary = summary || { summary: 'Coaching completed.', keyInsight: '', revisedNextAction: '' };
+
+  // Hide coaching input, show proceed button
+  document.getElementById('coachingInputArea').style.display = 'none';
+  document.getElementById('proceedToApproval').style.display = 'flex';
+
+  // If coaching suggests a revised next action, inject it into proposed updates
+  if (summary && summary.revisedNextAction && summary.revisedNextAction.length > 0) {
+    var hasNextAction = false;
+    for (var i = 0; i < state.analysis.proposedUpdates.length; i++) {
+      if (state.analysis.proposedUpdates[i].fieldName === 'nextAction') {
+        state.analysis.proposedUpdates[i].proposedValue = summary.revisedNextAction;
+        state.analysis.proposedUpdates[i].reasoning += ' (refined during coaching)';
+        hasNextAction = true;
+        break;
+      }
+    }
+    if (!hasNextAction) {
+      state.analysis.proposedUpdates.push({
+        fieldName: 'nextAction',
+        currentValue: state.merchantRecord.nextAction || '(none)',
+        proposedValue: summary.revisedNextAction,
+        reasoning: 'Identified during coaching session'
+      });
+    }
+  }
+}
+
+
+// ============================================================
+// STEP 4: APPROVAL SCREEN
+// ============================================================
+
+function showApprovalScreen() {
+  showSection('step-approval');
+
+  var container = document.getElementById('proposedUpdatesList');
+  container.innerHTML = '';
+
+  var updates = state.analysis.proposedUpdates || [];
+  state.approvedUpdates = [];
+
+  if (updates.length === 0) {
+    container.innerHTML = '<p style="font-size:13px; color:var(--text-muted); padding:16px; text-align:center;">'
+      + 'No field updates suggested. The interaction will still be logged.</p>';
+  }
+
+  for (var i = 0; i < updates.length; i++) {
+    var u = updates[i];
+    var cardId = 'update-card-' + i;
+
+    var html = '<div class="update-card" id="' + cardId + '">'
+      + '<div class="update-card-header">' + escapeHtml(getFieldLabel(u.fieldName)) + '</div>'
+      + '<div class="update-card-body">'
+      + '<div class="update-values">'
+      + '<span class="update-current">' + escapeHtml(u.currentValue || '(empty)') + '</span>'
+      + '<span class="update-arrow">→</span>'
+      + '<input type="text" class="update-proposed-input" id="update-val-' + i + '" '
+      + 'value="' + escapeHtml(u.proposedValue) + '">'
+      + '</div>'
+      + '<div class="update-reasoning">' + escapeHtml(u.reasoning) + '</div>'
+      + '<div class="update-toggle">'
+      + '<label class="toggle">'
+      + '<input type="checkbox" checked id="update-toggle-' + i + '" data-index="' + i + '">'
+      + '<span class="toggle-slider"></span>'
+      + '</label>'
+      + '<span style="font-size:12px; color:var(--text-muted);">Include this update</span>'
+      + '</div>'
+      + '</div></div>';
+
+    container.innerHTML += html;
+  }
+
+  // Observations
+  var observations = state.analysis.observations || [];
+  if (observations.length > 0) {
+    document.getElementById('observationsList').style.display = 'block';
+    var obsContainer = document.getElementById('observationsContent');
+    obsContainer.innerHTML = '';
+
+    for (var o = 0; o < observations.length; o++) {
+      obsContainer.innerHTML += '<div class="observation-card">'
+        + '<div class="insight">💡 ' + escapeHtml(observations[o].insight) + '</div>'
+        + '<div class="suggestion">' + escapeHtml(observations[o].actionSuggestion) + '</div>'
+        + '</div>';
+    }
+  } else {
+    document.getElementById('observationsList').style.display = 'none';
+  }
+}
+
+function getFieldLabel(fieldName) {
+  var labels = {
+    status: 'Status', priority: 'Priority', nextAction: 'Next Action',
+    nextActionDate: 'Next Action Date', notes: 'Notes',
+    contactName: 'Contact Name', phone: 'Phone', email: 'Email'
+  };
+  return labels[fieldName] || fieldName;
+}
+
+
+// ============================================================
+// STEP 5: COMMIT
+// ============================================================
+
+function commitUpdates() {
+  document.getElementById('commitBtn').disabled = true;
+
+  // Gather approved updates
+  var updates = state.analysis.proposedUpdates || [];
+  var approved = [];
+
+  for (var i = 0; i < updates.length; i++) {
+    var toggle = document.getElementById('update-toggle-' + i);
+    if (toggle && toggle.checked) {
+      var valueInput = document.getElementById('update-val-' + i);
+      approved.push({
+        fieldName: updates[i].fieldName,
+        proposedValue: valueInput ? valueInput.value : updates[i].proposedValue
+      });
+    }
+  }
+
+  showSection('step-processing');
+  updateProcessingText('Committing updates to Pipeline...');
+
+  callServer('commitUpdates', {
+    merchantId: state.merchantRecord.id,
+    merchantName: state.merchantRecord.name,
+    userName: state.userName,
+    transcript: state.transcript,
+    coachingSummary: state.coachingSummary ? state.coachingSummary.summary : '',
+    approvedUpdates: approved
+  }).then(function(result) {
+    if (!result.ok) {
+      alert('Error: ' + result.error);
+      showSection('step-approval');
+      document.getElementById('commitBtn').disabled = false;
+      return;
+    }
+
+    // Show confirmation
+    showSection('step-done');
+    document.getElementById('doneMessage').textContent =
+      state.merchantRecord.name + ' — ' + (result.updatedFields || []).length + ' fields updated';
+    document.getElementById('doneDetails').textContent =
+      'Interaction logged to CRM. '
+      + (state.coachingSummary ? state.coachingSummary.summary : '');
+  }).catch(function(err) {
+    alert('Error: ' + (err.message || err));
+    showSection('step-approval');
+    document.getElementById('commitBtn').disabled = false;
+  });
+}
+
+
+// ============================================================
+// RESET
+// ============================================================
+
+function resetFlow() {
+  state.selectedMerchantId = null;
+  state.selectedMerchantName = null;
+  state.audioBase64 = null;
+  state.audioMimeType = null;
+  state.audioFileName = null;
+  state.transcript = '';
+  state.merchantRecord = null;
+  state.interactionHistory = [];
+  state.analysis = null;
+  state.coachingHistory = [];
+  state.coachingSummary = null;
+  state.approvedUpdates = [];
+
+  document.getElementById('merchantSearch').value = '';
+  document.getElementById('submitRecordingBtn').disabled = true;
+  document.getElementById('coachingInputArea').style.display = 'flex';
+  document.getElementById('audioFileInput').value = '';
+  document.getElementById('audioPreview').classList.remove('visible');
+  document.getElementById('uploadLabel').textContent = 'Record or upload voice note';
+  document.getElementById('uploadSublabel').textContent = 'Tap to record a voice memo or select an audio file';
+
+  renderMerchantList(state.allMerchants, 'merchantList');
+  showSection('step-select');
+}
+
+
+// ============================================================
+// UTILITIES
+// ============================================================
+
+function escapeHtml(str) {
+  if (!str) return '';
+  var div = document.createElement('div');
+  div.textContent = String(str);
+  return div.innerHTML;
+}
+
+function formatMarkdown(text) {
+  if (!text) return '';
+  var html = escapeHtml(text);
+  // Bold
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  // Italic
+  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  // Line breaks
+  html = html.replace(/\n/g, '<br>');
+  return html;
+}
+
+</script>
+</body>
+</html>
