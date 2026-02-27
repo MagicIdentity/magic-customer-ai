@@ -854,12 +854,11 @@
     // VOICE LOGGER
     // ══════════════════════════════════════════
     function openVoiceLogger() {
-      if (!API_URL) return;
-      var url = API_URL + '?page=voice_logger';
+      var url = './voice-logger.html';
       if (detectedUserName) {
-        url += '&user=' + encodeURIComponent(detectedUserName);
+        url += '?user=' + encodeURIComponent(detectedUserName);
       }
-      window.open(url, '_blank');
+      window.location.href = url;
     }
 
     // ══════════════════════════════════════════
