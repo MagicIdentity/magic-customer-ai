@@ -2,7 +2,7 @@
   "name": "Magic Customer AI",
   "short_name": "Magic Ops",
   "description": "Internal operations intelligence for the Magic team",
-  "start_url": "./customer_ai_pwa.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#3D1670",
