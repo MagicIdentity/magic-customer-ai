@@ -72,12 +72,13 @@
       font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
       background: var(--bg);
       color: var(--text);
+      height: 100%;
       height: 100dvh;
-      height: 100vh; /* fallback */
       display: flex;
       flex-direction: column;
       overflow: hidden;
       -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     /* ══════════════════════════════════════════
@@ -88,6 +89,7 @@
       flex-direction: column;
       height: 100%;
       width: 100%;
+      max-width: 100%;
       background: var(--surface);
       position: relative;
     }
@@ -687,7 +689,7 @@
     <div class="config-box">
       <h2>Connect to Magic CRM</h2>
       <p>Paste your Apps Script deployment URL below. You only need to do this once — it's saved locally on this device.</p>
-      <input type="url" id="configUrlInput" placeholder="https://script.google.com/a/macros/magic-id.com/s/AKfycbyMrkQ4VYtJJdWf_UfkJIG7AA1B7V8-VP5CKTmhtND-mX0t62Cdizd0GgjNsjFHOZwN/exec" autocomplete="url">
+      <input type="url" id="configUrlInput" placeholder="https://script.google.com/macros/s/...../exec" autocomplete="url">
       <button id="configSaveBtn" onclick="saveConfig()">Connect</button>
     </div>
   </div>
@@ -821,6 +823,11 @@
     });
 
     function init() {
+      // Set initial height to match actual visible viewport on mobile
+      if (window.visualViewport && window.innerWidth < 768) {
+        document.querySelector('.app-shell').style.height = window.visualViewport.height + 'px';
+      }
+
       addMessage('assistant',
         'Welcome to **Magic Customer AI** — your real-time window into the CRM.\n\n' +
         'Before we dive in, **who am I speaking with?**'
@@ -865,11 +872,26 @@
       }
     }
 
-    // Handle mobile keyboard resize
+    // Handle mobile viewport resize (keyboard, browser chrome show/hide)
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', function() {
+        // Resize app shell to match actual visible viewport
+        // This keeps the input area pinned to the true bottom
+        var shell = document.querySelector('.app-shell');
+        if (shell && window.innerWidth < 768) {
+          shell.style.height = window.visualViewport.height + 'px';
+        }
+        // Scroll chat to bottom
         var chatArea = document.getElementById('chatArea');
         chatArea.scrollTop = chatArea.scrollHeight;
+      });
+
+      // Also handle scroll events on visual viewport (URL bar hide/show)
+      window.visualViewport.addEventListener('scroll', function() {
+        var shell = document.querySelector('.app-shell');
+        if (shell && window.innerWidth < 768) {
+          shell.style.height = window.visualViewport.height + 'px';
+        }
       });
     }
 
