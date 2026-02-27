@@ -201,11 +201,76 @@
 
     .skip-select-btn:hover { background: var(--gold-light); }
 
-    /* ============ RECORDING (File Input) ============ */
+    /* ============ RECORDING (File Input + Native) ============ */
 
     .recorder-area {
       text-align: center;
       padding: 24px 0;
+    }
+
+    .recorder-methods {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+    }
+
+    /* Native record button */
+    .native-record-btn {
+      display: none; /* shown via JS if MediaRecorder available */
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      max-width: 320px;
+      padding: 16px 24px;
+      border: 2px solid var(--purple-deep);
+      border-radius: var(--radius);
+      background: var(--purple-wash);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--purple-deep);
+    }
+    .native-record-btn:hover { background: var(--purple-tint); }
+    .native-record-btn.recording {
+      border-color: var(--danger);
+      background: var(--danger-bg);
+      color: var(--danger);
+      animation: rec-pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes rec-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3); }
+      50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    }
+
+    .rec-indicator {
+      width: 12px; height: 12px;
+      background: var(--purple-deep);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .native-record-btn.recording .rec-indicator {
+      background: var(--danger);
+      animation: rec-dot 1s ease-in-out infinite;
+    }
+    @keyframes rec-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .rec-timer {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .rec-divider {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: none; /* shown via JS if native recording available */
     }
 
     .record-upload-btn {
@@ -695,16 +760,28 @@
           <div class="card-label">Record your call debrief</div>
 
           <div class="recorder-area">
-            <!-- Primary: styled file input — AUDIO ONLY -->
-            <label class="record-upload-btn" id="recordUploadBtn">
-              <span class="icon">🎙️</span>
-              <span class="label">
-                <span class="label-main" id="uploadLabel">Record or upload voice note</span>
-                <span class="label-sub" id="uploadSublabel">Tap to open Voice Memos or select an audio file</span>
-              </span>
-              <input type="file" id="audioFileInput" accept="audio/*,.m4a,.mp3,.wav,.webm,.ogg,.aac,.caf"
-                onchange="handleAudioFile(this)">
-            </label>
+            <div class="recorder-methods">
+
+              <!-- Native recording (shown if MediaRecorder is available) -->
+              <button class="native-record-btn" id="nativeRecordBtn" onclick="toggleNativeRecording()">
+                <span class="rec-indicator"></span>
+                <span id="nativeRecordLabel">Tap to Record</span>
+                <span class="rec-timer" id="recTimer" style="display:none;">0:00</span>
+              </button>
+
+              <span class="rec-divider" id="recDivider">— or upload a file —</span>
+
+              <!-- File upload fallback -->
+              <label class="record-upload-btn" id="recordUploadBtn">
+                <span class="icon">📁</span>
+                <span class="label">
+                  <span class="label-main" id="uploadLabel">Upload voice note</span>
+                  <span class="label-sub" id="uploadSublabel">Select a recording from your files</span>
+                </span>
+                <input type="file" id="audioFileInput" accept="audio/*,.m4a,.mp3,.wav,.webm,.ogg,.aac,.caf"
+                  onchange="handleAudioFile(this)">
+              </label>
+            </div>
 
             <!-- Audio preview (shown after file selected) -->
             <div class="audio-preview" id="audioPreview">
@@ -949,10 +1026,18 @@ window.addEventListener('DOMContentLoaded', function() {
   // Platform-specific recording tips
   var tipEl = document.getElementById('platformTip');
   var ua = navigator.userAgent || '';
-  if (/iPhone|iPad|iPod/.test(ua)) {
-    tipEl.innerHTML = '📱 <strong>iPhone tip:</strong> Open the <strong>Voice Memos</strong> app, record your debrief, then come back here and tap the button above. Select your recording from <strong>Recents</strong> in the file picker.';
+
+  // Check for native recording support
+  var hasMediaRecorder = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
+
+  if (hasMediaRecorder) {
+    document.getElementById('nativeRecordBtn').style.display = 'inline-flex';
+    document.getElementById('recDivider').style.display = 'block';
+    tipEl.innerHTML = '🎙️ <strong>Record directly</strong> in the app, or upload a file from your device. Recordings are processed as audio — keep them under 2 minutes for best results.';
+  } else if (/iPhone|iPad|iPod/.test(ua)) {
+    tipEl.innerHTML = '📱 <strong>iPhone tip:</strong> Open the <strong>Voice Memos</strong> app, record your debrief, then come back here and tap the upload button. Select your recording from <strong>Recents</strong> in the file picker.';
   } else if (/Android/.test(ua)) {
-    tipEl.innerHTML = '📱 <strong>Android tip:</strong> Tap the button above — your phone\'s audio recorder should open. Record your debrief and confirm.';
+    tipEl.innerHTML = '📱 <strong>Android tip:</strong> Tap the upload button — your phone\'s audio recorder should open. Record your debrief and confirm.';
   } else {
     tipEl.innerHTML = '💻 <strong>Desktop:</strong> Record a voice note using any app (Voice Memos, Audacity, your phone), then upload the audio file here.';
   }
@@ -1140,16 +1225,146 @@ function handleAudioFile(input) {
 }
 
 function removeAudio() {
+  // Stop native recording if active
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+  }
+
   state.audioBase64 = null;
   state.audioMimeType = null;
   state.audioFileName = null;
 
   document.getElementById('audioFileInput').value = '';
   document.getElementById('audioPreview').classList.remove('visible');
-  document.getElementById('uploadLabel').textContent = 'Record or upload voice note';
-  document.getElementById('uploadSublabel').textContent = 'Tap to record a voice memo or select an audio file';
+  document.getElementById('uploadLabel').textContent = 'Upload voice note';
+  document.getElementById('uploadSublabel').textContent = 'Select a recording from your files';
+
+  // Reset native record button
+  var btn = document.getElementById('nativeRecordBtn');
+  if (btn) {
+    btn.classList.remove('recording');
+    document.getElementById('nativeRecordLabel').textContent = 'Tap to Record';
+    document.getElementById('recTimer').style.display = 'none';
+    clearInterval(recordingTimerInterval);
+  }
 
   updateSubmitButton();
+}
+
+
+// ============================================================
+// NATIVE AUDIO RECORDING (MediaRecorder API)
+// ============================================================
+
+var mediaRecorder = null;
+var audioChunks = [];
+var recordingStartTime = null;
+var recordingTimerInterval = null;
+
+function toggleNativeRecording() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    stopNativeRecording();
+  } else {
+    startNativeRecording();
+  }
+}
+
+function startNativeRecording() {
+  // Request microphone permission
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(function(stream) {
+      // Determine best supported MIME type
+      var mimeType = 'audio/webm;codecs=opus';
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'audio/webm';
+      }
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'audio/mp4';
+      }
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = ''; // let browser choose
+      }
+
+      var options = mimeType ? { mimeType: mimeType } : {};
+      mediaRecorder = new MediaRecorder(stream, options);
+      audioChunks = [];
+
+      mediaRecorder.ondataavailable = function(e) {
+        if (e.data.size > 0) audioChunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = function() {
+        // Stop all tracks to release microphone
+        stream.getTracks().forEach(function(track) { track.stop(); });
+
+        var blob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+        var actualMime = mediaRecorder.mimeType || 'audio/webm';
+        var fileSizeMB = (blob.size / (1024 * 1024)).toFixed(1);
+        var durationSec = Math.round((Date.now() - recordingStartTime) / 1000);
+        var durationStr = Math.floor(durationSec / 60) + ':' + String(durationSec % 60).padStart(2, '0');
+
+        // Convert to base64
+        var reader = new FileReader();
+        reader.onloadend = function() {
+          state.audioBase64 = reader.result.split(',')[1];
+          state.audioMimeType = actualMime;
+          state.audioFileName = 'recording-' + new Date().toISOString().substring(0, 19).replace(/[T:]/g, '-') + '.webm';
+
+          // Show preview
+          document.getElementById('audioFilename').textContent = 'Voice recording (' + durationStr + ')';
+          document.getElementById('audioMeta').textContent = actualMime + ' · ' + fileSizeMB + ' MB';
+          document.getElementById('audioPreview').classList.add('visible');
+
+          updateSubmitButton();
+        };
+        reader.readAsDataURL(blob);
+
+        // Reset button state
+        clearInterval(recordingTimerInterval);
+        var btn = document.getElementById('nativeRecordBtn');
+        btn.classList.remove('recording');
+        document.getElementById('nativeRecordLabel').textContent = 'Tap to Record';
+        document.getElementById('recTimer').style.display = 'none';
+      };
+
+      // Start recording
+      mediaRecorder.start(1000); // collect data every second
+      recordingStartTime = Date.now();
+
+      // Update UI
+      var btn = document.getElementById('nativeRecordBtn');
+      btn.classList.add('recording');
+      document.getElementById('nativeRecordLabel').textContent = 'Tap to Stop';
+      document.getElementById('recTimer').style.display = 'inline';
+      document.getElementById('recTimer').textContent = '0:00';
+
+      // Start timer
+      recordingTimerInterval = setInterval(function() {
+        var elapsed = Math.round((Date.now() - recordingStartTime) / 1000);
+        var mins = Math.floor(elapsed / 60);
+        var secs = String(elapsed % 60).padStart(2, '0');
+        document.getElementById('recTimer').textContent = mins + ':' + secs;
+
+        // Auto-stop at 5 minutes to prevent massive files
+        if (elapsed >= 300) {
+          stopNativeRecording();
+        }
+      }, 1000);
+    })
+    .catch(function(err) {
+      console.error('Microphone error:', err);
+      if (err.name === 'NotAllowedError') {
+        alert('Microphone access was denied. Please allow microphone access in your browser settings and try again.');
+      } else {
+        alert('Could not access microphone: ' + err.message + '\n\nTry using the file upload option instead.');
+      }
+    });
+}
+
+function stopNativeRecording() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+  }
 }
 
 
@@ -1637,8 +1852,8 @@ function resetFlow() {
   document.getElementById('coachingInputArea').style.display = 'flex';
   document.getElementById('audioFileInput').value = '';
   document.getElementById('audioPreview').classList.remove('visible');
-  document.getElementById('uploadLabel').textContent = 'Record or upload voice note';
-  document.getElementById('uploadSublabel').textContent = 'Tap to record a voice memo or select an audio file';
+  document.getElementById('uploadLabel').textContent = 'Upload voice note';
+  document.getElementById('uploadSublabel').textContent = 'Select a recording from your files';
 
   renderMerchantList(state.allMerchants, 'merchantList');
   showSection('step-select');
