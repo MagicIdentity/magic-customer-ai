@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#3D1670">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Magic Ops">
+  <meta name="description" content="Magic Customer AI — Internal operations intelligence">
+  <title>Magic Customer AI</title>
+  <link rel="manifest" href="manifest_customer_ai.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ══════════════════════════════════════════
+       DESIGN TOKENS
+       ══════════════════════════════════════════ */
+    :root {
+      --purple-deep: #3D1670;
+      --purple-primary: #4A1A8A;
+      --purple-mid: #6B3FA0;
+      --purple-light: #8B5FBF;
+      --purple-wash: #F3EDF9;
+      --purple-tint: #E8DDF2;
+      --purple-ghost: #F9F6FD;
+
+      --gold: #D4940A;
+      --gold-bright: #E8A83E;
+      --gold-light: #F5DFA6;
+      --gold-wash: #FDF6E3;
+      --gold-text: #5C4003;
+
+      --surface: #FFFFFF;
+      --bg: #F4F1F8;
+      --text: #1A1225;
+      --text-2: #6B5F7A;
+      --text-3: #9B91A8;
+      --border: #E8E0F0;
+      --border-light: #F0EBF5;
+
+      --success: #16A34A;
+      --danger: #DC2626;
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 22px;
+      --radius-pill: 9999px;
+
+      --shadow-sm: 0 1px 3px rgba(61, 22, 112, 0.06);
+      --shadow-md: 0 4px 16px rgba(61, 22, 112, 0.08);
+      --shadow-lg: 0 8px 40px rgba(61, 22, 112, 0.12);
+
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+      --header-h: 62px;
+    }
+
+    /* ══════════════════════════════════════════
+       RESET
+       ══════════════════════════════════════════ */
+    *, *::before, *::after {
+      margin: 0; padding: 0; box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html { height: 100%; overflow: hidden; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100dvh;
+      height: 100vh; /* fallback */
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ══════════════════════════════════════════
+       APP SHELL — mobile full-bleed, desktop card
+       ══════════════════════════════════════════ */
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+      background: var(--surface);
+      position: relative;
+    }
+
+    @media (min-width: 768px) {
+      body {
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background:
+          radial-gradient(ellipse at 18% 52%, rgba(74, 26, 138, 0.05) 0%, transparent 55%),
+          radial-gradient(ellipse at 82% 18%, rgba(212, 148, 10, 0.04) 0%, transparent 45%),
+          var(--bg);
+      }
+      .app-shell {
+        max-width: 560px;
+        height: min(92vh, 820px);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg), 0 0 0 1px var(--border-light);
+        overflow: hidden;
+      }
+    }
+
+    /* ══════════════════════════════════════════
+       HEADER
+       ══════════════════════════════════════════ */
+    .header {
+      background: linear-gradient(135deg, var(--purple-deep) 0%, var(--purple-primary) 55%, var(--purple-mid) 100%);
+      color: white;
+      padding: 0 20px;
+      height: var(--header-h);
+      padding-top: var(--safe-top);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 10;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+    }
+
+    .header-mark {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,0.13);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 16px;
+      flex-shrink: 0;
+      border: 1px solid rgba(255,255,255,0.1);
+      letter-spacing: -0.5px;
+    }
+
+    .header-text { flex: 1; min-width: 0; }
+    .header-text h1 {
+      font-size: 16px; font-weight: 700;
+      letter-spacing: -0.02em; line-height: 1.2;
+    }
+    .header-text p {
+      font-size: 11px; opacity: 0.7;
+      font-family: 'IBM Plex Mono', monospace;
+      letter-spacing: 0.02em; margin-top: 1px;
+    }
+
+    .header-status {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 9px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      opacity: 0.85; flex-shrink: 0;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+    .header-status .dot {
+      width: 6px; height: 6px;
+      background: #4ADE80;
+      border-radius: 50%;
+      animation: pulse-dot 2.5s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.45; }
+    }
+
+    /* ══════════════════════════════════════════
+       VOICE LOGGER BAR
+       ══════════════════════════════════════════ */
+    .voice-bar {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, var(--gold-wash) 0%, #FFF8E7 100%);
+      border-bottom: 1px solid var(--gold-light);
+      cursor: pointer;
+      transition: background 0.2s;
+      flex-shrink: 0;
+      text-decoration: none; color: inherit;
+    }
+    .voice-bar:hover { background: var(--gold-light); }
+    .voice-bar.visible { display: flex; }
+    .voice-bar .vb-icon { font-size: 17px; flex-shrink: 0; }
+    .voice-bar .vb-text { flex: 1; }
+    .voice-bar .vb-title {
+      font-size: 13px; font-weight: 600; color: var(--gold-text);
+    }
+    .voice-bar .vb-sub {
+      font-size: 11px; color: var(--text-3);
+    }
+    .voice-bar .vb-arrow {
+      font-size: 13px; color: var(--gold); font-weight: 700; flex-shrink: 0;
+    }
+
+    /* ══════════════════════════════════════════
+       CONNECTION / INSTALL BANNERS
+       ══════════════════════════════════════════ */
+    .banner {
+      display: none;
+      padding: 7px 16px;
+      font-size: 12px; font-weight: 500;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .banner.offline {
+      display: block;
+      background: #FEF3C7; color: #92400E;
+    }
+    .banner.error {
+      display: block;
+      background: #FEF2F2; color: var(--danger);
+    }
+
+    .install-bar {
+      display: none;
+      padding: 9px 16px;
+      background: var(--purple-wash);
+      border-bottom: 1px solid var(--purple-tint);
+      font-size: 13px; color: var(--purple-mid);
+      align-items: center; gap: 10px;
+      flex-shrink: 0;
+    }
+    .install-bar.visible { display: flex; }
+    .install-bar span { flex: 1; font-weight: 500; }
+    .install-bar .ib-btn {
+      background: var(--purple-primary); color: white;
+      border: none; padding: 5px 14px;
+      border-radius: var(--radius-pill);
+      font-size: 11px; font-weight: 600; font-family: inherit;
+      cursor: pointer; white-space: nowrap;
+    }
+    .install-bar .ib-x {
+      background: none; border: none; color: var(--purple-mid);
+      cursor: pointer; font-size: 16px; padding: 2px; opacity: 0.5;
+    }
+
+    /* ══════════════════════════════════════════
+       CHAT AREA
+       ══════════════════════════════════════════ */
+    .chat-area {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scroll-behavior: smooth;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+    @media (max-width: 767px) {
+      .chat-area { padding: 14px; gap: 10px; }
+    }
+    @media (min-width: 768px) {
+      .chat-area::-webkit-scrollbar { width: 5px; }
+      .chat-area::-webkit-scrollbar-track { background: transparent; }
+      .chat-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+      .chat-area::-webkit-scrollbar-thumb:hover { background: var(--purple-light); }
+    }
+
+    /* ══════════════════════════════════════════
+       MESSAGE BUBBLES
+       ══════════════════════════════════════════ */
+    .msg {
+      max-width: 88%;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      font-size: 14px; line-height: 1.65;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      animation: msg-in 0.22s ease-out;
+    }
+    @keyframes msg-in {
+      from { opacity: 0; transform: translateY(5px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg.assistant {
+      align-self: flex-start;
+      background: var(--purple-ghost);
+      color: var(--text);
+      border: 1px solid var(--border-light);
+      border-bottom-left-radius: 4px;
+    }
+    .msg.user {
+      align-self: flex-end;
+      background: var(--gold-wash);
+      color: var(--gold-text);
+      border: 1px solid var(--gold-light);
+      border-bottom-right-radius: 4px;
+      font-weight: 500;
+    }
+    .msg.error {
+      align-self: center;
+      background: #FEF2F2; color: var(--danger);
+      border: 1px solid #FECACA;
+      font-size: 13px; text-align: center;
+      max-width: 92%;
+    }
+    .msg.system {
+      align-self: center;
+      background: var(--purple-wash);
+      color: var(--purple-light);
+      font-size: 11px; font-weight: 500;
+      padding: 5px 14px;
+      border-radius: var(--radius-pill);
+      max-width: 90%; text-align: center;
+    }
+
+    @media (max-width: 767px) {
+      .msg { max-width: 93%; font-size: 13.5px; }
+    }
+
+    /* ── Markdown inside assistant ── */
+    .msg.assistant h1, .msg.assistant h2, .msg.assistant h3 {
+      color: var(--purple-primary);
+      margin: 12px 0 4px 0;
+      font-size: 14px; font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .msg.assistant h1:first-child,
+    .msg.assistant h2:first-child,
+    .msg.assistant h3:first-child { margin-top: 0; }
+
+    .msg.assistant strong { color: var(--purple-primary); font-weight: 600; }
+    .msg.assistant em { color: var(--text-2); }
+    .msg.assistant p { margin: 5px 0; }
+
+    .msg.assistant a {
+      color: var(--purple-mid);
+      text-decoration: none;
+      border-bottom: 1px solid var(--purple-tint);
+      transition: border-color 0.15s;
+    }
+    .msg.assistant a:hover { border-color: var(--purple-mid); }
+
+    .msg.assistant ol, .msg.assistant ul { margin: 5px 0 5px 20px; }
+    .msg.assistant li { margin: 3px 0; }
+    .msg.assistant li::marker { color: var(--gold); font-weight: 700; }
+
+    .msg.assistant code {
+      background: var(--purple-wash);
+      color: var(--purple-primary);
+      padding: 2px 6px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-weight: 500;
+      border: 1px solid var(--purple-tint);
+    }
+
+    .msg.assistant pre {
+      background: var(--purple-wash);
+      border: 1px solid var(--purple-tint);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      overflow-x: auto;
+      margin: 8px 0;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: var(--text-2);
+    }
+    .msg.assistant pre code {
+      background: none; border: none; padding: 0; color: inherit;
+    }
+
+    .msg.assistant hr {
+      border: none;
+      border-top: 2px solid var(--purple-tint);
+      margin: 14px 0;
+    }
+
+    .msg.assistant blockquote {
+      border-left: 3px solid var(--gold);
+      padding: 6px 14px;
+      margin: 8px 0;
+      color: var(--text-2);
+      background: var(--gold-wash);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-size: 13px;
+    }
+
+    /* ── Tables ── */
+    .msg.assistant .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin: 8px -4px;
+      padding: 0 4px;
+    }
+    .msg.assistant table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8px 0;
+      font-size: 13px;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      min-width: 280px;
+    }
+    .msg.assistant thead th {
+      background: var(--purple-primary);
+      color: white;
+      padding: 7px 10px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-family: 'IBM Plex Mono', monospace;
+      white-space: nowrap;
+    }
+    .msg.assistant tbody td {
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--border-light);
+      vertical-align: top;
+    }
+    .msg.assistant tbody tr:nth-child(even) { background: var(--purple-ghost); }
+    .msg.assistant tbody tr:last-child td { border-bottom: none; }
+    .msg.assistant tbody td:first-child {
+      font-weight: 600;
+      color: var(--purple-primary);
+    }
+
+    @media (max-width: 767px) {
+      .msg.assistant table { font-size: 12px; }
+      .msg.assistant thead th { padding: 6px 8px; font-size: 9px; }
+      .msg.assistant tbody td { padding: 5px 8px; }
+    }
+
+    /* ── Strategy blocks (email drafts etc) ── */
+    .strategy-block {
+      background: var(--purple-wash);
+      border-left: 3px solid var(--purple-mid);
+      padding: 8px 12px;
+      margin: 6px 0;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-size: 13px;
+    }
+
+    /* ══════════════════════════════════════════
+       TYPING INDICATOR
+       ══════════════════════════════════════════ */
+    .typing-ctr {
+      align-self: flex-start;
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      padding: 0 20px 8px 20px;
+    }
+    @media (max-width: 767px) {
+      .typing-ctr { padding: 0 14px 6px 14px; }
+    }
+    .typing-ctr.active { display: flex; }
+
+    .typing-dots {
+      background: var(--purple-ghost);
+      padding: 10px 18px;
+      border-radius: var(--radius-md);
+      border-bottom-left-radius: 4px;
+      border: 1px solid var(--border-light);
+      display: flex; gap: 4px; align-items: center;
+    }
+    .typing-dots span {
+      width: 7px; height: 7px;
+      background: var(--purple-light);
+      border-radius: 50%;
+      animation: dot-bounce 1.4s infinite ease-in-out;
+    }
+    .typing-dots span:nth-child(2) { animation-delay: 0.16s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.32s; }
+
+    @keyframes dot-bounce {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+
+    .typing-status {
+      font-size: 11px;
+      color: var(--text-3);
+      padding-left: 6px;
+      min-height: 16px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-weight: 500;
+    }
+
+    /* ══════════════════════════════════════════
+       INPUT AREA
+       ══════════════════════════════════════════ */
+    .input-area {
+      padding: 10px 16px;
+      padding-bottom: calc(10px + var(--safe-bottom));
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      flex-shrink: 0;
+    }
+    @media (min-width: 768px) {
+      .input-area { padding: 12px 20px 16px; }
+    }
+
+    .input-area textarea {
+      flex: 1;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 15px;
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      resize: none;
+      min-height: 44px;
+      max-height: 120px;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+      background: var(--purple-ghost);
+      color: var(--text);
+      line-height: 1.4;
+    }
+    .input-area textarea::placeholder { color: var(--text-3); }
+    .input-area textarea:focus {
+      border-color: var(--purple-mid);
+      background: var(--surface);
+      box-shadow: 0 0 0 3px rgba(74, 26, 138, 0.07);
+    }
+
+    .send-btn {
+      width: 44px; height: 44px;
+      border: none;
+      background: linear-gradient(135deg, var(--purple-primary), var(--purple-mid));
+      color: white;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(74, 26, 138, 0.2);
+    }
+    .send-btn:active { transform: scale(0.93); }
+    .send-btn:disabled {
+      opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: none;
+    }
+    .send-btn:hover:not(:disabled) {
+      box-shadow: 0 4px 14px rgba(74, 26, 138, 0.3);
+    }
+    .send-btn svg { width: 18px; height: 18px; }
+
+    /* ══════════════════════════════════════════
+       SPLASH SCREEN
+       ══════════════════════════════════════════ */
+    .splash {
+      position: fixed; inset: 0;
+      background: linear-gradient(135deg, var(--purple-deep), var(--purple-primary) 60%, var(--purple-mid));
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 100;
+      transition: opacity 0.35s ease, visibility 0.35s ease;
+    }
+    .splash.hidden {
+      opacity: 0; visibility: hidden; pointer-events: none;
+    }
+    .splash-mark {
+      width: 64px; height: 64px;
+      background: rgba(255,255,255,0.13);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; font-weight: 700; color: white;
+      margin-bottom: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      animation: splash-float 2s ease-in-out infinite;
+    }
+    .splash-text {
+      color: white;
+      font-size: 18px; font-weight: 600;
+      letter-spacing: -0.02em;
+      opacity: 0.9;
+    }
+    .splash-sub {
+      color: rgba(255,255,255,0.55);
+      font-size: 12px;
+      font-family: 'IBM Plex Mono', monospace;
+      margin-top: 4px;
+      letter-spacing: 0.03em;
+    }
+    @keyframes splash-float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    /* ══════════════════════════════════════════
+       CONFIG OVERLAY (shown when URL not set)
+       ══════════════════════════════════════════ */
+    .config-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(61, 22, 112, 0.95);
+      backdrop-filter: blur(8px);
+      z-index: 200;
+      align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .config-overlay.visible { display: flex; }
+    .config-box {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: var(--shadow-lg);
+    }
+    .config-box h2 {
+      font-size: 18px; font-weight: 700;
+      color: var(--purple-primary);
+      margin-bottom: 8px;
+    }
+    .config-box p {
+      font-size: 13px; color: var(--text-2);
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+    .config-box input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-family: 'IBM Plex Mono', monospace;
+      outline: none;
+      margin-bottom: 12px;
+    }
+    .config-box input:focus { border-color: var(--purple-mid); }
+    .config-box button {
+      width: 100%;
+      padding: 11px;
+      background: var(--purple-primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .config-box button:hover { background: var(--purple-mid); }
+
+    /* ══════════════════════════════════════════
+       ACCESSIBILITY
+       ══════════════════════════════════════════ */
+    :focus-visible {
+      outline: 2px solid var(--purple-mid);
+      outline-offset: 2px;
+    }
+
+    /* Hide action data that might slip through */
+    .msg.assistant pre:has(code) { display: none; }
+  </style>
+</head>
+
+<body>
+
+  <!-- Splash -->
+  <div class="splash" id="splash">
+    <div class="splash-mark">M</div>
+    <div class="splash-text">Magic Customer AI</div>
+    <div class="splash-sub">internal operations intelligence</div>
+  </div>
+
+  <!-- Config overlay (first-time setup) -->
+  <div class="config-overlay" id="configOverlay">
+    <div class="config-box">
+      <h2>Connect to Magic CRM</h2>
+      <p>Paste your Apps Script deployment URL below. You only need to do this once — it's saved locally on this device.</p>
+      <input type="url" id="configUrlInput" placeholder="https://script.google.com/macros/s/...../exec" autocomplete="url">
+      <button id="configSaveBtn" onclick="saveConfig()">Connect</button>
+    </div>
+  </div>
+
+  <!-- App -->
+  <div class="app-shell">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-mark">M</div>
+      <div class="header-text">
+        <h1>Magic Customer AI</h1>
+        <p>internal ops intelligence</p>
+      </div>
+      <div class="header-status">
+        <span class="dot"></span>
+        <span>LIVE DATA</span>
+      </div>
+    </div>
+
+    <!-- Connection banner -->
+    <div class="banner" id="connectionBanner"></div>
+
+    <!-- Install prompt -->
+    <div class="install-bar" id="installBar">
+      <span>📲 Install for quick home screen access</span>
+      <button class="ib-btn" id="installBtn">Install</button>
+      <button class="ib-x" id="installDismiss">&times;</button>
+    </div>
+
+    <!-- Voice Logger bar (shown after user identification) -->
+    <a class="voice-bar" id="voiceBar" href="#" onclick="openVoiceLogger(); return false;">
+      <span class="vb-icon">📞</span>
+      <span class="vb-text">
+        <span class="vb-title">Log a Call</span>
+        <span class="vb-sub">Record a voice note &amp; get deal coaching</span>
+      </span>
+      <span class="vb-arrow">→</span>
+    </a>
+
+    <!-- Chat -->
+    <div class="chat-area" id="chatArea"></div>
+
+    <!-- Typing indicator -->
+    <div class="typing-ctr" id="typingCtr">
+      <div class="typing-dots"><span></span><span></span><span></span></div>
+      <div class="typing-status" id="typingStatus"></div>
+    </div>
+
+    <!-- Input -->
+    <div class="input-area">
+      <textarea
+        id="userInput"
+        placeholder="Ask about your merchants..."
+        rows="1"
+        onkeydown="handleKeydown(event)"
+        enterkeyhint="send"
+      ></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()" aria-label="Send message">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Marked.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+
+  <script>
+    // ══════════════════════════════════════════
+    // CONFIGURATION
+    // ══════════════════════════════════════════
+    var STORAGE_KEY = 'magic_customer_ai_url';
+    var API_URL = '';
+
+    function getStoredUrl() {
+      try { return localStorage.getItem(STORAGE_KEY) || ''; } catch(e) { return ''; }
+    }
+
+    function saveConfig() {
+      var input = document.getElementById('configUrlInput');
+      var url = input.value.trim();
+      if (!url || !url.startsWith('https://')) {
+        input.style.borderColor = '#DC2626';
+        return;
+      }
+      try { localStorage.setItem(STORAGE_KEY, url); } catch(e) {}
+      API_URL = url;
+      document.getElementById('configOverlay').classList.remove('visible');
+      init();
+    }
+
+    // ══════════════════════════════════════════
+    // STATE
+    // ══════════════════════════════════════════
+    var conversationHistory = [];
+    var isWaiting = false;
+    var statusTimers = [];
+    var detectedUserName = '';
+
+    // ══════════════════════════════════════════
+    // INIT
+    // ══════════════════════════════════════════
+    marked.setOptions({ breaks: true, gfm: true });
+
+    var textarea = document.getElementById('userInput');
+    textarea.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+
+    // Boot
+    window.addEventListener('load', function() {
+      API_URL = getStoredUrl();
+
+      setTimeout(function() {
+        document.getElementById('splash').classList.add('hidden');
+      }, 500);
+
+      if (!API_URL) {
+        // Show config overlay
+        setTimeout(function() {
+          document.getElementById('configOverlay').classList.add('visible');
+        }, 600);
+      } else {
+        init();
+      }
+    });
+
+    function init() {
+      addMessage('assistant',
+        'Welcome to **Magic Customer AI** — your real-time window into the CRM.\n\n' +
+        'Before we dive in, **who am I speaking with?**'
+      );
+      textarea.focus();
+    }
+
+    // ══════════════════════════════════════════
+    // USER IDENTIFICATION
+    // ══════════════════════════════════════════
+    function tryDetectUserName(text) {
+      if (detectedUserName) return;
+      var clean = text.trim();
+      clean = clean.replace(/^(hi|hey|hello|i'm|i am|it's|this is|my name is|είμαι|γεια)\s*/i, '');
+      clean = clean.replace(/[.,!?;]/g, '').trim();
+      var words = clean.split(/\s+/);
+      if (words.length >= 1 && words.length <= 3 && clean.length < 40) {
+        detectedUserName = clean;
+        document.getElementById('voiceBar').classList.add('visible');
+      }
+    }
+
+    // ══════════════════════════════════════════
+    // VOICE LOGGER
+    // ══════════════════════════════════════════
+    function openVoiceLogger() {
+      if (!API_URL) return;
+      var url = API_URL + '?page=voice_logger';
+      if (detectedUserName) {
+        url += '&user=' + encodeURIComponent(detectedUserName);
+      }
+      window.open(url, '_blank');
+    }
+
+    // ══════════════════════════════════════════
+    // KEYBOARD HANDLING
+    // ══════════════════════════════════════════
+    function handleKeydown(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    }
+
+    // Handle mobile keyboard resize
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', function() {
+        var chatArea = document.getElementById('chatArea');
+        chatArea.scrollTop = chatArea.scrollHeight;
+      });
+    }
+
+    // ══════════════════════════════════════════
+    // MARKDOWN + TABLE WRAPPER + CLEANUP
+    // ══════════════════════════════════════════
+    function cleanResponse(text) {
+      // Remove session data blocks
+      text = text.replace(/📊[\s\S]*?```[\s\S]*?```/g, '');
+      text = text.replace(/```[\s]*\n?[\s]*(?:SESSION_ID\|)?GS-[\s\S]*?```/g, '');
+      text = text.replace(/^(?:SESSION_ID\|)?GS-\d+\|.*$/gm, '');
+      text = text.replace(/^GS-XXX\|.*$/gm, '');
+      text = text.replace(/✅.*?(?:session|data|saved|CRM|σύστημα|αποθηκεύ).*$/gim, '');
+      text = text.replace(/📊.*?Session Data.*$/gim, '');
+      // Email markers
+      text = text.replace(/```[\s]*\n?[\s]*📧[\s\S]*?```/g, '');
+      text = text.replace(/📧EMAIL:.*?📧/g, '');
+      // Clean up
+      text = text.replace(/\n{3,}/g, '\n\n').trim();
+      return text;
+    }
+
+    function styleStrategyBlocks(html) {
+      html = html.replace(
+        /Strategy Note:?<\/strong>\s*([\s\S]*?)(?=Distribution Strategy|Option \d|<\/div>|$)/gi,
+        '<div class="strategy-block">🎯 <strong>Strategy Note:</strong> $1</div>'
+      );
+      html = html.replace(
+        /Distribution Strategy:?<\/strong>\s*([\s\S]*?)(?=Option \d|Strategy Note|<\/div>|$)/gi,
+        '<div class="strategy-block">📢 <strong>Distribution:</strong> $1</div>'
+      );
+      return html;
+    }
+
+    function wrapTables(html) {
+      // Wrap <table> in scrollable container for mobile
+      return html.replace(/<table>/g, '<div class="table-wrap"><table>').replace(/<\/table>/g, '</table></div>');
+    }
+
+    // ══════════════════════════════════════════
+    // ADD MESSAGE TO CHAT
+    // ══════════════════════════════════════════
+    function addMessage(role, text) {
+      var chatArea = document.getElementById('chatArea');
+      var div = document.createElement('div');
+      div.className = 'msg ' + role;
+
+      if (role === 'assistant') {
+        var cleaned = cleanResponse(text);
+        var html = marked.parse(cleaned);
+        html = styleStrategyBlocks(html);
+        html = wrapTables(html);
+        div.innerHTML = html;
+      } else if (role === 'system') {
+        div.textContent = text;
+      } else if (role === 'error') {
+        div.textContent = text;
+      } else {
+        div.innerHTML = text
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/\n/g, '<br>');
+      }
+
+      chatArea.appendChild(div);
+      requestAnimationFrame(function() {
+        chatArea.scrollTop = chatArea.scrollHeight;
+      });
+    }
+
+    // ══════════════════════════════════════════
+    // TYPING INDICATOR
+    // ══════════════════════════════════════════
+    function startTyping() {
+      var ctr = document.getElementById('typingCtr');
+      var status = document.getElementById('typingStatus');
+      ctr.classList.add('active');
+      clearTimers();
+
+      var msgs = [
+        { delay: 0, text: '' },
+        { delay: 2000, text: 'reading CRM data...' },
+        { delay: 5000, text: 'analysing portfolio...' },
+        { delay: 9000, text: 'preparing recommendations...' },
+        { delay: 15000, text: 'almost there...' }
+      ];
+      msgs.forEach(function(m) {
+        statusTimers.push(setTimeout(function() {
+          status.textContent = m.text;
+        }, m.delay));
+      });
+
+      document.getElementById('chatArea').scrollTop =
+        document.getElementById('chatArea').scrollHeight;
+    }
+
+    function stopTyping() {
+      clearTimers();
+      document.getElementById('typingCtr').classList.remove('active');
+      document.getElementById('typingStatus').textContent = '';
+    }
+
+    function clearTimers() {
+      statusTimers.forEach(function(t) { clearTimeout(t); });
+      statusTimers = [];
+    }
+
+    // ══════════════════════════════════════════
+    // SEND MESSAGE
+    // ══════════════════════════════════════════
+    function sendMessage() {
+      if (isWaiting || !API_URL) return;
+
+      var input = document.getElementById('userInput');
+      var text = input.value.trim();
+      if (!text) return;
+
+      addMessage('user', text);
+      input.value = '';
+      input.style.height = 'auto';
+
+      // Blur on mobile to dismiss keyboard
+      if (window.innerWidth < 768) {
+        input.blur();
+      }
+
+      // Detect name from first message
+      tryDetectUserName(text);
+
+      conversationHistory.push({ role: 'user', text: text });
+
+      isWaiting = true;
+      startTyping();
+      document.getElementById('sendBtn').disabled = true;
+
+      fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ history: conversationHistory })
+      })
+      .then(function(response) {
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        return response.json();
+      })
+      .then(function(result) {
+        isWaiting = false;
+        stopTyping();
+        document.getElementById('sendBtn').disabled = false;
+
+        if (result.ok) {
+          conversationHistory.push({ role: 'assistant', text: result.text });
+          addMessage('assistant', result.text);
+        } else {
+          addMessage('error', 'Error: ' + (result.error || 'Something went wrong'));
+        }
+      })
+      .catch(function(err) {
+        isWaiting = false;
+        stopTyping();
+        document.getElementById('sendBtn').disabled = false;
+        addMessage('error', 'Connection error. Please check your internet and try again.');
+        console.error('Fetch error:', err);
+      });
+    }
+
+    // ══════════════════════════════════════════
+    // PWA INSTALL PROMPT
+    // ══════════════════════════════════════════
+    var deferredPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installBar').classList.add('visible');
+    });
+
+    document.getElementById('installBtn').addEventListener('click', function() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(function() {
+          deferredPrompt = null;
+          document.getElementById('installBar').classList.remove('visible');
+        });
+      }
+    });
+
+    document.getElementById('installDismiss').addEventListener('click', function() {
+      document.getElementById('installBar').classList.remove('visible');
+      deferredPrompt = null;
+    });
+
+    // ══════════════════════════════════════════
+    // ONLINE / OFFLINE
+    // ══════════════════════════════════════════
+    var banner = document.getElementById('connectionBanner');
+
+    window.addEventListener('offline', function() {
+      banner.className = 'banner offline';
+      banner.textContent = "You're offline — messages will send when you reconnect";
+    });
+
+    window.addEventListener('online', function() {
+      banner.className = 'banner';
+      banner.textContent = '';
+    });
+
+    // ══════════════════════════════════════════
+    // SERVICE WORKER
+    // ══════════════════════════════════════════
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw_customer_ai.js').catch(function(err) {
+        console.log('SW registration skipped:', err.message);
+      });
+    }
+  </script>
+</body>
+</html>

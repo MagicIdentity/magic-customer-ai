@@ -1,0 +1,24 @@
+{
+  "name": "Magic Customer AI",
+  "short_name": "Magic Ops",
+  "description": "Internal operations intelligence for the Magic team",
+  "start_url": "./customer_ai_pwa.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#3D1670",
+  "theme_color": "#3D1670",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
