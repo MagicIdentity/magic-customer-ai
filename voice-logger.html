@@ -293,13 +293,9 @@
       background: var(--purple-tint);
     }
 
-    .record-upload-btn .icon {
-      font-size: 28px;
-    }
+    .record-upload-btn .icon { font-size: 28px; }
 
-    .record-upload-btn .label {
-      text-align: left;
-    }
+    .record-upload-btn .label { text-align: left; }
 
     .record-upload-btn .label-main {
       font-size: 15px;
@@ -312,9 +308,7 @@
       color: var(--text-muted);
     }
 
-    .record-upload-btn input[type="file"] {
-      display: none;
-    }
+    .record-upload-btn input[type="file"] { display: none; }
 
     .audio-preview {
       margin-top: 16px;
@@ -334,22 +328,9 @@
     }
 
     .audio-preview-card .check { font-size: 20px; }
-
-    .audio-preview-card .info {
-      flex: 1;
-    }
-
-    .audio-preview-card .info .filename {
-      font-size: 13px;
-      font-weight: 500;
-      color: #065F46;
-    }
-
-    .audio-preview-card .info .meta {
-      font-size: 11px;
-      color: #059669;
-    }
-
+    .audio-preview-card .info { flex: 1; }
+    .audio-preview-card .info .filename { font-size: 13px; font-weight: 500; color: #065F46; }
+    .audio-preview-card .info .meta { font-size: 11px; color: #059669; }
     .audio-preview-card .remove-btn {
       background: none;
       border: none;
@@ -571,6 +552,33 @@
     .observation-card .insight { font-weight: 500; margin-bottom: 4px; }
     .observation-card .suggestion { color: var(--text-secondary); }
 
+    /* ============ TRANSCRIPT ============ */
+
+    .transcript-box {
+      margin-top: 8px;
+      padding: 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      line-height: 1.6;
+      max-height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    /* ============ CONFIRMATION ============ */
+
+    .confirmation {
+      text-align: center;
+      padding: 40px 0;
+    }
+
+    .confirmation-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
     /* ============ BUTTONS ============ */
 
     .btn {
@@ -589,44 +597,16 @@
     }
 
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    .btn-primary {
-      background: var(--purple-deep);
-      color: #fff;
-    }
-
+    .btn-primary { background: var(--purple-deep); color: #fff; }
     .btn-primary:hover:not(:disabled) { background: var(--purple-mid); }
-
-    .btn-success {
-      background: var(--success);
-      color: #fff;
-    }
-
+    .btn-success { background: var(--success); color: #fff; }
     .btn-success:hover:not(:disabled) { background: #059669; }
-
-    .btn-outline {
-      background: #fff;
-      color: var(--text-primary);
-      border: 1px solid var(--border);
-    }
-
+    .btn-outline { background: #fff; color: var(--text-primary); border: 1px solid var(--border); }
     .btn-outline:hover:not(:disabled) { background: var(--bg); }
-
-    .btn-gold {
-      background: var(--gold);
-      color: #fff;
-    }
-
+    .btn-gold { background: var(--gold); color: #fff; }
     .btn-gold:hover:not(:disabled) { background: var(--gold-bright); }
-
     .btn-block { display: flex; width: 100%; }
-
-    .btn-group {
-      display: flex;
-      gap: 8px;
-      margin-top: 16px;
-    }
-
+    .btn-group { display: flex; gap: 8px; margin-top: 16px; }
     .btn-group .btn { flex: 1; }
 
     /* ============ SECTION VISIBILITY ============ */
@@ -649,97 +629,36 @@
     .badge-danger { background: var(--danger-bg); color: #991B1B; }
     .badge-info { background: var(--info-bg); color: #1E40AF; }
 
-    /* ============ TRANSCRIPT DISPLAY ============ */
+    /* ============ RESPONSIVE ============ */
 
-    .transcript-box {
-      background: #f8f8f8;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 12px;
-      font-size: 13px;
-      line-height: 1.6;
-      max-height: 200px;
-      overflow-y: auto;
-      white-space: pre-wrap;
-      font-family: 'IBM Plex Mono', monospace;
+    @media (max-width: 480px) {
+      .app-container { padding: 8px; }
+      .content-area { padding: 14px; }
+      .header h1 { font-size: 16px; }
     }
-
-    /* ============ TOGGLE SWITCH ============ */
-
-    .toggle {
-      position: relative;
-      width: 40px;
-      height: 22px;
-      cursor: pointer;
-    }
-
-    .toggle input { display: none; }
-
-    .toggle-slider {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: var(--border);
-      border-radius: 22px;
-      transition: 0.2s;
-    }
-
-    .toggle-slider:before {
-      content: '';
-      position: absolute;
-      height: 16px;
-      width: 16px;
-      left: 3px;
-      bottom: 3px;
-      background: #fff;
-      border-radius: 50%;
-      transition: 0.2s;
-    }
-
-    .toggle input:checked + .toggle-slider { background: var(--success); }
-    .toggle input:checked + .toggle-slider:before { transform: translateX(18px); }
-
-    /* ============ CONFIRMATION ============ */
-
-    .confirmation {
-      text-align: center;
-      padding: 32px 0;
-    }
-
-    .confirmation-icon {
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      background: var(--success-bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 16px;
-      font-size: 28px;
-    }
-
   </style>
 </head>
 <body>
-  <div class="app-container">
 
-    <!-- HEADER -->
+  <div class="app-container">
     <div class="header">
-      <button class="back-btn" onclick="goBack()" title="Back to Customer AI">←</button>
-      <h1>📞 Log a Call</h1>
+      <button class="back-btn" onclick="goBack()">←</button>
+      <span style="font-size:20px;">📞</span>
+      <h1>Log a Call</h1>
     </div>
 
     <div class="content-area">
 
-      <!-- STEP INDICATOR -->
+      <!-- Step dots -->
       <div class="steps">
-        <div class="step-dot" id="dot-1"></div>
+        <div class="step-dot active" id="dot-1"></div>
         <div class="step-dot" id="dot-2"></div>
         <div class="step-dot" id="dot-3"></div>
         <div class="step-dot" id="dot-4"></div>
         <div class="step-dot" id="dot-5"></div>
       </div>
 
-      <!-- ===== STEP 1: MERCHANT SELECTION + RECORDING ===== -->
+      <!-- ===== STEP 1: MERCHANT SELECT + RECORD ===== -->
       <div class="section active" id="step-select">
         <div class="card-label">Step 1 of 5</div>
         <h2 style="font-size:18px; margin-bottom:4px;">Who did you call?</h2>
@@ -958,10 +877,20 @@
 var STORAGE_KEY = 'magic_customer_ai_url';
 var API_URL = localStorage.getItem(STORAGE_KEY) || '';
 
+/**
+ * Unified server call helper.
+ * Sends a POST to the Apps Script doPost() endpoint with the
+ * correct action routing. All backend calls go through this.
+ *
+ * @param {string} action - The doPost action name
+ * @param {Object} params - Parameters (sent as body.params)
+ * @returns {Promise<Object>} - Parsed JSON response
+ */
 function callServer(action, params) {
   if (!API_URL) {
     return Promise.reject(new Error('API URL not configured. Open Customer AI first to set it.'));
   }
+
   var body = { action: action };
   if (params !== undefined) body.params = params;
 
@@ -988,7 +917,7 @@ var state = {
   allMerchants: [],
   userName: '',
 
-  // Audio capture (file-based)
+  // Audio capture
   audioBase64: null,
   audioMimeType: null,
   audioFileName: null,
@@ -1027,7 +956,7 @@ window.addEventListener('DOMContentLoaded', function() {
   var tipEl = document.getElementById('platformTip');
   var ua = navigator.userAgent || '';
 
-  // Check for native recording support
+  // Check for native recording support (only works outside iframe)
   var hasMediaRecorder = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
 
   if (hasMediaRecorder) {
@@ -1042,18 +971,24 @@ window.addEventListener('DOMContentLoaded', function() {
     tipEl.innerHTML = '💻 <strong>Desktop:</strong> Record a voice note using any app (Voice Memos, Audacity, your phone), then upload the audio file here.';
   }
 
-  // Load Pipeline merchants for selection
+  // Load Pipeline merchants for selection via doPost
   callServer('getMerchantList')
     .then(function(result) {
-      if (result.ok) {
+      if (result && result.ok) {
         state.allMerchants = result.merchants || [];
+      } else if (Array.isArray(result)) {
+        // backward compat if array returned directly
+        state.allMerchants = result;
       } else {
-        state.allMerchants = result || [];  // backward compat if array returned directly
+        state.allMerchants = [];
       }
       renderMerchantList(state.allMerchants, 'merchantList');
     })
     .catch(function(err) {
       console.error('Failed to load merchants:', err);
+      // Show inline message instead of blocking
+      document.getElementById('merchantList').innerHTML =
+        '<p style="font-size:13px; color:var(--danger); padding:12px;">Could not load merchant list. Check your connection and refresh.</p>';
     });
 });
 
@@ -1254,6 +1189,7 @@ function removeAudio() {
 
 // ============================================================
 // NATIVE AUDIO RECORDING (MediaRecorder API)
+// Available in PWA because we're outside the iframe sandbox
 // ============================================================
 
 var mediaRecorder = null;
@@ -1270,7 +1206,6 @@ function toggleNativeRecording() {
 }
 
 function startNativeRecording() {
-  // Request microphone permission
   navigator.mediaDevices.getUserMedia({ audio: true })
     .then(function(stream) {
       // Determine best supported MIME type
@@ -1294,37 +1229,33 @@ function startNativeRecording() {
       };
 
       mediaRecorder.onstop = function() {
-        // Stop all tracks to release microphone
-        stream.getTracks().forEach(function(track) { track.stop(); });
+        // Stop all tracks
+        stream.getTracks().forEach(function(t) { t.stop(); });
 
         var blob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
-        var actualMime = mediaRecorder.mimeType || 'audio/webm';
-        var fileSizeMB = (blob.size / (1024 * 1024)).toFixed(1);
-        var durationSec = Math.round((Date.now() - recordingStartTime) / 1000);
-        var durationStr = Math.floor(durationSec / 60) + ':' + String(durationSec % 60).padStart(2, '0');
+        state.audioMimeType = mediaRecorder.mimeType || 'audio/webm';
+        state.audioFileName = 'recording.' + (state.audioMimeType.indexOf('mp4') > -1 ? 'm4a' : 'webm');
+
+        // Show preview
+        var sizeMB = (blob.size / (1024 * 1024)).toFixed(1);
+        document.getElementById('audioFilename').textContent = 'Voice recording (' + formatRecordingTime(Date.now() - recordingStartTime) + ')';
+        document.getElementById('audioMeta').textContent = state.audioMimeType + ' · ' + sizeMB + ' MB';
+        document.getElementById('audioPreview').classList.add('visible');
 
         // Convert to base64
         var reader = new FileReader();
         reader.onloadend = function() {
           state.audioBase64 = reader.result.split(',')[1];
-          state.audioMimeType = actualMime;
-          state.audioFileName = 'recording-' + new Date().toISOString().substring(0, 19).replace(/[T:]/g, '-') + '.webm';
-
-          // Show preview
-          document.getElementById('audioFilename').textContent = 'Voice recording (' + durationStr + ')';
-          document.getElementById('audioMeta').textContent = actualMime + ' · ' + fileSizeMB + ' MB';
-          document.getElementById('audioPreview').classList.add('visible');
-
           updateSubmitButton();
         };
         reader.readAsDataURL(blob);
 
-        // Reset button state
-        clearInterval(recordingTimerInterval);
+        // Reset button
         var btn = document.getElementById('nativeRecordBtn');
         btn.classList.remove('recording');
         document.getElementById('nativeRecordLabel').textContent = 'Tap to Record';
         document.getElementById('recTimer').style.display = 'none';
+        clearInterval(recordingTimerInterval);
       };
 
       // Start recording
@@ -1334,27 +1265,18 @@ function startNativeRecording() {
       // Update UI
       var btn = document.getElementById('nativeRecordBtn');
       btn.classList.add('recording');
-      document.getElementById('nativeRecordLabel').textContent = 'Tap to Stop';
+      document.getElementById('nativeRecordLabel').textContent = 'Recording...';
       document.getElementById('recTimer').style.display = 'inline';
       document.getElementById('recTimer').textContent = '0:00';
 
-      // Start timer
       recordingTimerInterval = setInterval(function() {
-        var elapsed = Math.round((Date.now() - recordingStartTime) / 1000);
-        var mins = Math.floor(elapsed / 60);
-        var secs = String(elapsed % 60).padStart(2, '0');
-        document.getElementById('recTimer').textContent = mins + ':' + secs;
-
-        // Auto-stop at 5 minutes to prevent massive files
-        if (elapsed >= 300) {
-          stopNativeRecording();
-        }
+        var elapsed = Date.now() - recordingStartTime;
+        document.getElementById('recTimer').textContent = formatRecordingTime(elapsed);
       }, 1000);
-    })
-    .catch(function(err) {
-      console.error('Microphone error:', err);
+
+    }).catch(function(err) {
       if (err.name === 'NotAllowedError') {
-        alert('Microphone access was denied. Please allow microphone access in your browser settings and try again.');
+        alert('Microphone access was denied.\n\nPlease allow microphone access in your browser settings and try again.');
       } else {
         alert('Could not access microphone: ' + err.message + '\n\nTry using the file upload option instead.');
       }
@@ -1365,6 +1287,13 @@ function stopNativeRecording() {
   if (mediaRecorder && mediaRecorder.state === 'recording') {
     mediaRecorder.stop();
   }
+}
+
+function formatRecordingTime(ms) {
+  var totalSec = Math.floor(ms / 1000);
+  var min = Math.floor(totalSec / 60);
+  var sec = totalSec % 60;
+  return min + ':' + (sec < 10 ? '0' : '') + sec;
 }
 
 
@@ -1722,73 +1651,56 @@ function showApprovalScreen() {
 
   for (var i = 0; i < updates.length; i++) {
     var u = updates[i];
-    var cardId = 'update-card-' + i;
-
-    var html = '<div class="update-card" id="' + cardId + '">'
-      + '<div class="update-card-header">' + escapeHtml(getFieldLabel(u.fieldName)) + '</div>'
+    var card = document.createElement('div');
+    card.className = 'update-card';
+    card.innerHTML = '<div class="update-card-header">' + escapeHtml(u.fieldName) + '</div>'
       + '<div class="update-card-body">'
-      + '<div class="update-values">'
-      + '<span class="update-current">' + escapeHtml(u.currentValue || '(empty)') + '</span>'
-      + '<span class="update-arrow">→</span>'
-      + '<input type="text" class="update-proposed-input" id="update-val-' + i + '" '
-      + 'value="' + escapeHtml(u.proposedValue) + '">'
-      + '</div>'
-      + '<div class="update-reasoning">' + escapeHtml(u.reasoning) + '</div>'
-      + '<div class="update-toggle">'
-      + '<label class="toggle">'
-      + '<input type="checkbox" checked id="update-toggle-' + i + '" data-index="' + i + '">'
-      + '<span class="toggle-slider"></span>'
-      + '</label>'
-      + '<span style="font-size:12px; color:var(--text-muted);">Include this update</span>'
-      + '</div>'
-      + '</div></div>';
-
-    container.innerHTML += html;
+      + '  <div class="update-values">'
+      + '    <span class="update-current">' + escapeHtml(u.currentValue || '(empty)') + '</span>'
+      + '    <span class="update-arrow">→</span>'
+      + '    <input class="update-proposed-input" type="text" value="' + escapeHtml(u.proposedValue || '') + '" data-field="' + escapeHtml(u.fieldName) + '" data-index="' + i + '">'
+      + '  </div>'
+      + '  <div class="update-reasoning">' + escapeHtml(u.reasoning || '') + '</div>'
+      + '  <div class="update-toggle">'
+      + '    <input type="checkbox" id="toggle-' + i + '" checked data-index="' + i + '">'
+      + '    <label for="toggle-' + i + '" style="font-size:12px; color:var(--text-secondary);">Include this update</label>'
+      + '  </div>'
+      + '</div>';
+    container.appendChild(card);
   }
 
-  // Observations
+  // Show observations if any
   var observations = state.analysis.observations || [];
   if (observations.length > 0) {
     document.getElementById('observationsList').style.display = 'block';
     var obsContainer = document.getElementById('observationsContent');
     obsContainer.innerHTML = '';
-
     for (var o = 0; o < observations.length; o++) {
-      obsContainer.innerHTML += '<div class="observation-card">'
-        + '<div class="insight">💡 ' + escapeHtml(observations[o].insight) + '</div>'
-        + '<div class="suggestion">' + escapeHtml(observations[o].actionSuggestion) + '</div>'
-        + '</div>';
+      var obs = observations[o];
+      var obsCard = document.createElement('div');
+      obsCard.className = 'observation-card';
+      obsCard.innerHTML = '<div class="insight">' + escapeHtml(obs.insight || obs) + '</div>'
+        + (obs.suggestion ? '<div class="suggestion">' + escapeHtml(obs.suggestion) + '</div>' : '');
+      obsContainer.appendChild(obsCard);
     }
   } else {
     document.getElementById('observationsList').style.display = 'none';
   }
 }
 
-function getFieldLabel(fieldName) {
-  var labels = {
-    status: 'Status', priority: 'Priority', nextAction: 'Next Action',
-    nextActionDate: 'Next Action Date', notes: 'Notes',
-    contactName: 'Contact Name', phone: 'Phone', email: 'Email'
-  };
-  return labels[fieldName] || fieldName;
-}
-
 
 // ============================================================
-// STEP 5: COMMIT
+// COMMIT UPDATES
 // ============================================================
 
 function commitUpdates() {
-  document.getElementById('commitBtn').disabled = true;
-
-  // Gather approved updates
   var updates = state.analysis.proposedUpdates || [];
   var approved = [];
 
   for (var i = 0; i < updates.length; i++) {
-    var toggle = document.getElementById('update-toggle-' + i);
-    if (toggle && toggle.checked) {
-      var valueInput = document.getElementById('update-val-' + i);
+    var checkbox = document.getElementById('toggle-' + i);
+    if (checkbox && checkbox.checked) {
+      var valueInput = document.querySelector('.update-proposed-input[data-index="' + i + '"]');
       approved.push({
         fieldName: updates[i].fieldName,
         proposedValue: valueInput ? valueInput.value : updates[i].proposedValue
@@ -1796,6 +1708,7 @@ function commitUpdates() {
     }
   }
 
+  document.getElementById('commitBtn').disabled = true;
   showSection('step-processing');
   updateProcessingText('Committing updates to Pipeline...');
 
@@ -1854,6 +1767,15 @@ function resetFlow() {
   document.getElementById('audioPreview').classList.remove('visible');
   document.getElementById('uploadLabel').textContent = 'Upload voice note';
   document.getElementById('uploadSublabel').textContent = 'Select a recording from your files';
+
+  // Reset native record button
+  var btn = document.getElementById('nativeRecordBtn');
+  if (btn) {
+    btn.classList.remove('recording');
+    document.getElementById('nativeRecordLabel').textContent = 'Tap to Record';
+    document.getElementById('recTimer').style.display = 'none';
+    clearInterval(recordingTimerInterval);
+  }
 
   renderMerchantList(state.allMerchants, 'merchantList');
   showSection('step-select');
