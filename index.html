@@ -766,23 +766,10 @@
     // CONFIGURATION
     // ══════════════════════════════════════════
     var STORAGE_KEY = 'magic_customer_ai_url';
-    var API_URL = '';
+    var API_URL = 'https://script.google.com/macros/s/AKfycbyNuVkIHzuVJP-OMuhCUftvsZdvUsQkgx-Rtd2C0vlq1H0VDic-0ss9CTzgPEkHO_6i/exec';
 
     function getStoredUrl() {
       try { return localStorage.getItem(STORAGE_KEY) || ''; } catch(e) { return ''; }
-    }
-
-    function saveConfig() {
-      var input = document.getElementById('configUrlInput');
-      var url = input.value.trim();
-      if (!url || !url.startsWith('https://')) {
-        input.style.borderColor = '#DC2626';
-        return;
-      }
-      try { localStorage.setItem(STORAGE_KEY, url); } catch(e) {}
-      API_URL = url;
-      document.getElementById('configOverlay').classList.remove('visible');
-      init();
     }
 
     // ══════════════════════════════════════════
@@ -805,21 +792,13 @@
     });
 
     // Boot
-    window.addEventListener('load', function() {
-      API_URL = getStoredUrl();
 
+    window.addEventListener('load', function() {
       setTimeout(function() {
         document.getElementById('splash').classList.add('hidden');
       }, 500);
 
-      if (!API_URL) {
-        // Show config overlay
-        setTimeout(function() {
-          document.getElementById('configOverlay').classList.add('visible');
-        }, 600);
-      } else {
         init();
-      }
     });
 
     function init() {
