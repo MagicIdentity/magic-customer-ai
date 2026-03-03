@@ -871,10 +871,11 @@
 <script>
 // ============================================================
 // PWA API CONFIGURATION
-// Hardcoded Apps Script deployment URL
+// Shares the same localStorage key as the main Customer AI PWA
 // ============================================================
 
-var API_URL = 'https://script.google.com/a/macros/magic-id.com/s/AKfycbyMrkQ4VYtJJdWf_UfkJIG7AA1B7V8-VP5CKTmhtND-mX0t62Cdizd0GgjNsjFHOZwN/exec';
+var STORAGE_KEY = 'magic_customer_ai_url';
+var API_URL = localStorage.getItem(STORAGE_KEY) || '';
 
 /**
  * Unified server call helper.
@@ -941,6 +942,12 @@ var state = {
 // ============================================================
 
 window.addEventListener('DOMContentLoaded', function() {
+  // Check API URL
+  if (!API_URL) {
+    alert('No API URL configured. Please open the main Customer AI app first to set your server URL.');
+    return;
+  }
+
   // Get userName from URL parameter or prompt
   var params = new URLSearchParams(window.location.search);
   state.userName = params.get('user') || '';
