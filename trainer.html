@@ -263,6 +263,41 @@
       font-family: inherit;
     }
 
+    .msg-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+
+    .msg-action-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-family: inherit;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .msg-action-btn:hover {
+      border-color: var(--purple-mid);
+      color: var(--purple-mid);
+      background: var(--purple-light);
+    }
+
+    .msg-action-btn.copied {
+      border-color: var(--success);
+      color: var(--success);
+      background: rgba(16, 185, 129, 0.08);
+    }
+
     .voice-tag {
       display: inline-flex;
       align-items: center;
@@ -585,7 +620,7 @@
 // ============================================================
 
 // IMPORTANT: Replace this with your Customer AI deployment URL
-var DEPLOYMENT_URL = 'https://script.google.com/macros/s/AKfycbwwtT6pj--raHBsyJcOHebxKt53MTFeZOURZoHX6y_q8gcJVyP2Au8wxAGoazjA-Zo-/exec';
+var DEPLOYMENT_URL = 'YOUR_APPS_SCRIPT_DEPLOYMENT_URL';
 
 // ============================================================
 // STATE
@@ -892,16 +927,32 @@ function addMessage(role, content, isVoice) {
   }
   msgDiv.appendChild(bubble);
 
-  // For assistant messages, add a tap-to-replay / stop control
+  // For assistant messages, add action buttons (copy + replay)
   if (role === 'assistant') {
-    bubble.addEventListener('click', function() {
+    var actions = document.createElement('div');
+    actions.className = 'msg-actions';
+
+    // Copy button
+    var copyBtn = document.createElement('button');
+    copyBtn.className = 'msg-action-btn';
+    copyBtn.innerHTML = '📋 Copy';
+    copyBtn.onclick = function() { copyMessageText(content, copyBtn); };
+    actions.appendChild(copyBtn);
+
+    // Replay voice button
+    var replayBtn = document.createElement('button');
+    replayBtn.className = 'msg-action-btn';
+    replayBtn.innerHTML = '🔊 Replay';
+    replayBtn.onclick = function() {
       if (state.isSpeaking) {
         stopSpeaking();
-      } else if (state.voiceEnabled) {
+      } else {
         speakText(content.replace(/<[^>]+>/g, ''), 'English');
       }
-    });
-    bubble.style.cursor = 'pointer';
+    };
+    actions.appendChild(replayBtn);
+
+    bubble.appendChild(actions);
   }
 
   chatArea.appendChild(msgDiv);
@@ -948,6 +999,59 @@ function autoResize(el) {
   el.style.height = 'auto';
   el.style.height = Math.min(el.scrollHeight, 120) + 'px';
   updateSendButton();
+}
+
+
+// ============================================================
+// COPY TO CLIPBOARD
+// ============================================================
+
+function copyMessageText(htmlContent, btn) {
+  // Strip HTML to get clean text for clipboard
+  var clean = htmlContent
+    .replace(/<strong>(.+?)<\/strong>/g, '$1')
+    .replace(/<br\s*\/?>/g, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .trim();
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(clean).then(function() {
+      showCopied(btn);
+    }).catch(function() {
+      fallbackCopy(clean, btn);
+    });
+  } else {
+    fallbackCopy(clean, btn);
+  }
+}
+
+function fallbackCopy(text, btn) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showCopied(btn);
+  } catch(e) {
+    alert('Could not copy. Long-press the message to select text manually.');
+  }
+  document.body.removeChild(ta);
+}
+
+function showCopied(btn) {
+  var original = btn.innerHTML;
+  btn.innerHTML = '✓ Copied';
+  btn.classList.add('copied');
+  setTimeout(function() {
+    btn.innerHTML = original;
+    btn.classList.remove('copied');
+  }, 1500);
 }
 
 
