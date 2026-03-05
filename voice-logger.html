@@ -875,7 +875,8 @@
 // ============================================================
 
 var STORAGE_KEY = 'magic_customer_ai_url';
-var API_URL = localStorage.getItem(STORAGE_KEY) || '';
+var HARDCODED_URL = 'https://script.google.com/macros/s/AKfycbyNuVkIHzuVJP-OMuhCUftvsZdvUsQkgx-Rtd2C0vlq1H0VDic-0ss9CTzgPEkHO_6i/exec';
+var API_URL = localStorage.getItem(STORAGE_KEY) || HARDCODED_URL;
 
 /**
  * Unified server call helper.
@@ -944,9 +945,10 @@ var state = {
 window.addEventListener('DOMContentLoaded', function() {
   // Check API URL
   if (!API_URL) {
-    alert('No API URL configured. Please open the main Customer AI app first to set your server URL.');
-    return;
+    API_URL = HARDCODED_URL;
   }
+  // Ensure localStorage is populated for future loads
+  try { localStorage.setItem(STORAGE_KEY, API_URL); } catch(e) {}
 
   // Get userName from URL parameter or prompt
   var params = new URLSearchParams(window.location.search);

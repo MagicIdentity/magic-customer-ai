@@ -767,6 +767,7 @@
     // ══════════════════════════════════════════
     var STORAGE_KEY = 'magic_customer_ai_url';
     var API_URL = 'https://script.google.com/macros/s/AKfycbwwtT6pj--raHBsyJcOHebxKt53MTFeZOURZoHX6y_q8gcJVyP2Au8wxAGoazjA-Zo-/exec';
+    try { localStorage.setItem(STORAGE_KEY, API_URL); } catch(e) {}
 
     function getStoredUrl() {
       try { return localStorage.getItem(STORAGE_KEY) || ''; } catch(e) { return ''; }
