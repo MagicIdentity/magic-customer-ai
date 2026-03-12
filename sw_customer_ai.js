@@ -1,53 +1,97 @@
-// Service Worker for Magic Customer AI PWA
-// Provides offline shell caching and PWA installability
+// Service Worker for Magic Customer AI PWA (v2.0)
+// Network-first for own assets (ensures updates propagate immediately)
+// Cache-first for vendor assets (fonts, libraries)
+// v2.0: Network-first strategy, version-check support
+// v1.0: Original cache-first for everything
 
-var CACHE_NAME = 'magic-ops-v1';
-var SHELL_URLS = [
-  './',
-  './customer_ai_pwa.html',
+var CACHE_NAME = 'magic-ops-v2';
+
+var VENDOR_ASSETS = [
   'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap',
   'https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js'
 ];
 
-// Install — cache the app shell
+// Install — cache vendor assets only
 self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open(CACHE_NAME).then(function(cache) {
-      return cache.addAll(SHELL_URLS);
+      return cache.addAll(VENDOR_ASSETS);
     })
   );
   self.skipWaiting();
 });
 
-// Activate — clean up old caches
+// Activate — clean ALL old caches immediately
 self.addEventListener('activate', function(event) {
   event.waitUntil(
-    caches.keys().then(function(keys) {
+    caches.keys().then(function(names) {
       return Promise.all(
-        keys.filter(function(key) { return key !== CACHE_NAME; })
-            .map(function(key) { return caches.delete(key); })
+        names.filter(function(name) { return name !== CACHE_NAME; })
+             .map(function(name) { return caches.delete(name); })
       );
     })
   );
   self.clients.claim();
 });
 
-// Fetch — network-first for API calls, cache-first for shell
-self.addEventListener('fetch', function(event) {
-  var url = event.request.url;
+// Message handler — allows the page to request a forced update
+self.addEventListener('message', function(event) {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
 
-  // Never cache API calls (Apps Script endpoints)
-  if (url.indexOf('script.google.com') !== -1 ||
-      url.indexOf('generativelanguage.googleapis.com') !== -1) {
+// Fetch strategy:
+//   - POST / Apps Script / Gemini → pass through (never cache)
+//   - Own assets (same origin) → network-first, cache fallback
+//   - Vendor assets (CDN) → cache-first, network fallback
+self.addEventListener('fetch', function(event) {
+  var url = new URL(event.request.url);
+
+  // Only handle http/https
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    return;
+  }
+
+  // Never cache API calls
+  if (url.hostname === 'script.google.com' ||
+      url.hostname === 'generativelanguage.googleapis.com') {
     event.respondWith(fetch(event.request));
     return;
   }
 
-  // Cache-first for everything else (shell assets)
+  if (event.request.method === 'POST') {
+    return;
+  }
+
+  // Same-origin assets → network-first
+  if (url.origin === self.location.origin) {
+    event.respondWith(
+      fetch(event.request).then(function(response) {
+        if (response.ok) {
+          var clone = response.clone();
+          caches.open(CACHE_NAME).then(function(cache) {
+            cache.put(event.request, clone);
+          });
+        }
+        return response;
+      }).catch(function() {
+        return caches.match(event.request).then(function(cached) {
+          if (cached) return cached;
+          if (event.request.mode === 'navigate') {
+            return caches.match('./index.html');
+          }
+        });
+      })
+    );
+    return;
+  }
+
+  // Vendor assets → cache-first
   event.respondWith(
     caches.match(event.request).then(function(cached) {
-      return cached || fetch(event.request).then(function(response) {
-        // Cache new successful responses
+      if (cached) return cached;
+      return fetch(event.request).then(function(response) {
         if (response.ok) {
           var clone = response.clone();
           caches.open(CACHE_NAME).then(function(cache) {
@@ -56,11 +100,6 @@ self.addEventListener('fetch', function(event) {
         }
         return response;
       });
-    }).catch(function() {
-      // Offline fallback — return the cached shell
-      if (event.request.mode === 'navigate') {
-        return caches.match('./customer_ai_pwa.html');
-      }
     })
   );
 });

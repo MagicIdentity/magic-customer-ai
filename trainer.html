@@ -1217,7 +1217,64 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('nameInput').focus();
   initTTS();
 });
-</script>
 
+// ══════════════════════════════════════════
+// SERVICE WORKER + VERSION CHECK
+// ══════════════════════════════════════════
+var APP_VERSION = '2.0.0';
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw_customer_ai.js', { updateViaCache: 'none' })
+    .then(function(registration) {
+      setInterval(function() { registration.update(); }, 60000);
+
+      registration.addEventListener('updatefound', function() {
+        var newWorker = registration.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', function() {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              showUpdateBanner();
+            }
+          });
+        }
+      });
+    })
+    .catch(function(err) {
+      console.log('SW registration skipped:', err.message);
+    });
+
+  navigator.serviceWorker.addEventListener('controllerchange', function() {
+    window.location.reload();
+  });
+}
+
+function checkVersion() {
+  fetch('version.json?_=' + Date.now())
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.version && data.version !== APP_VERSION) {
+        console.log('New version available: ' + data.version + ' (running ' + APP_VERSION + ')');
+        if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+        }
+        showUpdateBanner();
+      }
+    })
+    .catch(function() {});
+}
+
+function showUpdateBanner() {
+  if (document.getElementById('updateBanner')) return;
+  var b = document.createElement('div');
+  b.id = 'updateBanner';
+  b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#1a1a2e;color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;font-family:Outfit,sans-serif;font-size:14px;';
+  b.innerHTML = '<span>A new version is available</span><button onclick="window.location.reload()" style="background:#fff;color:#1a1a2e;border:none;padding:6px 16px;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px;">Refresh</button>';
+  document.body.prepend(b);
+}
+
+checkVersion();
+setInterval(checkVersion, 300000);
+
+</script>
 </body>
 </html>
