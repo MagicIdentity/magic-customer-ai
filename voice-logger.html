@@ -1,927 +1,1038 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#4A1A8A">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Magic Voice Logger</title>
+  <title>Magic — Call Debrief</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
-
     :root {
       --purple-deep: #4A1A8A;
       --purple-mid: #6B3FA0;
-      --purple-light: #8B5FBF;
-      --purple-wash: #F3EDF9;
-      --purple-tint: #E8DDF2;
-      --gold: #D4940A;
-      --gold-bright: #E8A83E;
-      --gold-light: #F5DFA6;
-      --gold-wash: #FDF6E3;
-      --gold-text: #5C4003;
-      --bg: #FAFAFA;
-      --bg-card: #FFFFFF;
-      --text-primary: #1a1a1a;
-      --text-secondary: #555;
-      --text-muted: #888;
-      --border: #e0e0e0;
+      --purple-light: #F3EEFF;
+      --purple-glow: rgba(107, 63, 160, 0.15);
+      --honey: #E8A317;
+      --honey-light: #FFF4DB;
+      --surface: #FAFAFA;
+      --surface-card: #FFFFFF;
+      --text-primary: #1A1A2E;
+      --text-secondary: #6B7280;
+      --text-muted: #9CA3AF;
+      --border: #E5E7EB;
       --success: #10B981;
-      --success-bg: #ECFDF5;
-      --warning: #F59E0B;
-      --warning-bg: #FFFBEB;
-      --danger: #EF4444;
-      --danger-bg: #FEF2F2;
-      --info: #3B82F6;
-      --info-bg: #EFF6FF;
-      --radius: 12px;
-      --radius-sm: 8px;
+      --success-light: #ECFDF5;
+      --error: #EF4444;
+      --error-light: #FEF2F2;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--bg);
+      font-family: 'DM Sans', -apple-system, sans-serif;
+      background: var(--surface);
       color: var(--text-primary);
-      min-height: 100vh;
+      min-height: 100dvh;
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ============ LAYOUT ============ */
+    .hidden { display: none !important; }
 
-    .app-container {
-      max-width: 640px;
-      margin: 0 auto;
-      padding: 16px;
-      padding-bottom: 100px;
+    /* ══════════════════════════════════════════
+       PAGE 1: CHAT / DEBRIEF INTERFACE
+    ══════════════════════════════════════════ */
+
+    #chatPage {
+      display: flex;
+      flex-direction: column;
+      min-height: 100dvh;
     }
 
+    /* ── Header ── */
     .header {
       background: var(--purple-deep);
-      color: #fff;
-      padding: 16px 20px;
-      border-radius: var(--radius) var(--radius) 0 0;
+      color: white;
+      padding: 14px 16px;
       display: flex;
       align-items: center;
       gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
 
-    .header h1 {
-      font-size: 18px;
-      font-weight: 600;
-    }
-
-    .header .back-btn {
-      background: rgba(255,255,255,0.15);
+    .header-back {
+      background: rgba(255,255,255,0.12);
       border: none;
-      color: #fff;
+      border-radius: 8px;
       width: 32px;
       height: 32px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 18px;
       display: flex;
       align-items: center;
       justify-content: center;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      flex-shrink: 0;
     }
 
-    .header .back-btn:hover { background: rgba(255,255,255,0.25); }
-
-    .content-area {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-top: none;
-      border-radius: 0 0 var(--radius) var(--radius);
-      padding: 20px;
-    }
-
-    /* ============ STEP INDICATOR ============ */
-
-    .steps {
+    .header-icon {
+      width: 34px;
+      height: 34px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 10px;
       display: flex;
-      gap: 4px;
-      margin-bottom: 20px;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      flex-shrink: 0;
     }
 
-    .step-dot {
-      flex: 1;
-      height: 4px;
-      border-radius: 2px;
-      background: var(--border);
-      transition: background 0.3s;
-    }
-
-    .step-dot.active { background: var(--purple-deep); }
-    .step-dot.complete { background: var(--success); }
-
-    /* ============ CARDS ============ */
-
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 16px;
-      margin-bottom: 12px;
-    }
-
-    .card-label {
-      font-size: 11px;
+    .header-text h1 {
+      font-size: 16px;
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-muted);
+      letter-spacing: -0.01em;
+    }
+
+    .header-text p {
+      font-size: 11px;
+      opacity: 0.65;
+      margin-top: 1px;
+    }
+
+    /* ── Merchant Selector Bar ── */
+    .merchant-bar {
+      background: white;
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: sticky;
+      top: 60px;
+      z-index: 90;
+    }
+
+    .merchant-bar label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    .merchant-select {
+      flex: 1;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text-primary);
+      background: var(--surface);
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239CA3AF' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+
+    .merchant-select:focus { border-color: var(--purple-mid); }
+
+    /* ── Chat Area ── */
+    .chat-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 16px 120px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Welcome / empty state */
+    .welcome {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 32px 20px;
+      flex: 1;
+    }
+
+    .welcome-icon {
+      width: 60px;
+      height: 60px;
+      background: var(--purple-light);
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin-bottom: 16px;
+    }
+
+    .welcome h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--purple-deep);
       margin-bottom: 8px;
     }
 
-    .card-title {
-      font-size: 16px;
+    .welcome p {
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      max-width: 300px;
+    }
+
+    .welcome .hint {
+      margin-top: 20px;
+      background: var(--honey-light);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 12.5px;
+      color: var(--text-primary);
+      line-height: 1.45;
+      max-width: 320px;
+    }
+
+    .welcome .hint strong { color: var(--honey); }
+
+    /* Message bubbles */
+    .message {
+      max-width: 88%;
+      animation: fadeUp 0.25s ease-out;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.user { align-self: flex-end; }
+    .message.assistant { align-self: flex-start; }
+
+    .message-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+      padding: 0 4px;
+      font-weight: 500;
+    }
+
+    .message.user .message-label { text-align: right; }
+
+    .message-bubble {
+      padding: 12px 15px;
+      border-radius: var(--radius);
+      font-size: 14.5px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .message.user .message-bubble {
+      background: var(--purple-deep);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.assistant .message-bubble {
+      background: var(--surface-card);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .message.assistant .message-bubble strong {
+      color: var(--purple-deep);
       font-weight: 600;
+    }
+
+    .voice-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--honey);
       margin-bottom: 4px;
     }
 
-    .card-subtitle {
+    /* System messages (analysis status, etc.) */
+    .message.system {
+      align-self: center;
+      max-width: 90%;
+    }
+
+    .message.system .message-bubble {
+      background: var(--purple-light);
+      color: var(--purple-deep);
+      border: none;
+      border-radius: 12px;
+      font-size: 13px;
+      text-align: center;
+      padding: 10px 16px;
+    }
+
+    /* Deal health card in chat */
+    .deal-health-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      box-shadow: var(--shadow-sm);
+      max-width: 88%;
+      align-self: flex-start;
+      animation: fadeUp 0.25s ease-out;
+    }
+
+    .deal-health-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .deal-score {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .deal-score.good { background: var(--success); }
+    .deal-score.moderate { background: var(--honey); }
+    .deal-score.poor { background: var(--error); }
+
+    .deal-health-header .label {
       font-size: 13px;
       color: var(--text-secondary);
     }
 
-    /* ============ MERCHANT SELECTOR ============ */
-
-    .merchant-search {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      font-family: 'Outfit', sans-serif;
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .merchant-search:focus { border-color: var(--purple-mid); }
-
-    .merchant-list {
-      max-height: 240px;
-      overflow-y: auto;
-      margin-top: 8px;
-    }
-
-    .merchant-item {
-      padding: 10px 12px;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: background 0.15s;
-    }
-
-    .merchant-item:hover { background: var(--purple-wash); }
-    .merchant-item.selected { background: var(--purple-tint); border: 1px solid var(--purple-light); }
-
-    .merchant-item .name { font-weight: 500; font-size: 14px; }
-    .merchant-item .meta { font-size: 12px; color: var(--text-muted); }
-
-    .skip-select-btn {
+    .deal-health-header .label strong {
       display: block;
-      width: 100%;
-      padding: 10px;
-      margin-top: 12px;
-      background: var(--gold-wash);
-      border: 1px solid var(--gold-light);
-      border-radius: var(--radius-sm);
-      color: var(--gold-text);
-      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+
+    .deal-health-summary {
       font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      text-align: center;
+      line-height: 1.5;
+      color: var(--text-secondary);
     }
 
-    .skip-select-btn:hover { background: var(--gold-light); }
-
-    /* ============ RECORDING (File Input + Native) ============ */
-
-    .recorder-area {
-      text-align: center;
-      padding: 24px 0;
-    }
-
-    .recorder-methods {
+    /* Processing indicator */
+    .processing {
+      align-self: flex-start;
       display: flex;
-      flex-direction: column;
-      gap: 12px;
       align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      box-shadow: var(--shadow-sm);
+      animation: fadeUp 0.25s ease-out;
     }
 
-    /* Native record button */
-    .native-record-btn {
-      display: none; /* shown via JS if MediaRecorder available */
+    .processing-dots {
+      display: flex;
+      gap: 4px;
+    }
+
+    .processing-dots span {
+      width: 5px;
+      height: 5px;
+      background: var(--purple-mid);
+      border-radius: 50%;
+      animation: dotPulse 1.2s ease-in-out infinite;
+    }
+
+    .processing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .processing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes dotPulse {
+      0%, 100% { opacity: 0.3; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1); }
+    }
+
+    /* ── Input Area ── */
+    .input-area {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid var(--border);
+      padding: 10px 16px;
+      padding-bottom: max(10px, env(safe-area-inset-bottom));
+      z-index: 100;
+    }
+
+    /* Audio preview bar */
+    .audio-preview {
+      display: none;
+      background: var(--honey-light);
+      border-radius: 10px;
+      padding: 8px 12px;
+      margin-bottom: 8px;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-primary);
+    }
+
+    .audio-preview.visible { display: flex; }
+    .audio-preview .filename { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .audio-preview .remove-btn {
+      background: none; border: none; font-size: 16px;
+      cursor: pointer; color: var(--text-muted); padding: 0 2px;
+    }
+
+    .input-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .text-input-wrap { flex: 1; }
+
+    .text-input {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 22px;
+      padding: 10px 14px;
+      font-size: 15px;
+      font-family: inherit;
+      color: var(--text-primary);
+      background: var(--surface);
+      outline: none;
+      resize: none;
+      min-height: 42px;
+      max-height: 110px;
+      line-height: 1.4;
+      transition: border-color 0.15s;
+    }
+
+    .text-input:focus { border-color: var(--purple-mid); background: white; }
+    .text-input::placeholder { color: var(--text-muted); }
+    .text-input:disabled { opacity: 0.5; }
+
+    .btn-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: none;
+      display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      width: 100%;
-      max-width: 320px;
-      padding: 16px 24px;
-      border: 2px solid var(--purple-deep);
-      border-radius: var(--radius);
-      background: var(--purple-wash);
       cursor: pointer;
-      transition: all 0.2s;
-      font-family: 'Outfit', sans-serif;
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--purple-deep);
+      font-size: 18px;
+      transition: all 0.15s;
+      flex-shrink: 0;
     }
-    .native-record-btn:hover { background: var(--purple-tint); }
-    .native-record-btn.recording {
-      border-color: var(--danger);
-      background: var(--danger-bg);
-      color: var(--danger);
-      animation: rec-pulse 1.5s ease-in-out infinite;
+
+    .btn-voice {
+      background: var(--honey-light);
+      color: var(--honey);
+      border: 1.5px solid rgba(232, 163, 23, 0.3);
     }
-    @keyframes rec-pulse {
+
+    .btn-voice:hover { background: var(--honey); color: white; }
+    .btn-voice.recording {
+      background: var(--error);
+      color: white;
+      border-color: var(--error);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
       0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3); }
       50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
     }
 
-    .rec-indicator {
-      width: 12px; height: 12px;
-      background: var(--purple-deep);
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .native-record-btn.recording .rec-indicator {
-      background: var(--danger);
-      animation: rec-dot 1s ease-in-out infinite;
-    }
-    @keyframes rec-dot {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
+    .btn-upload {
+      background: var(--surface);
+      color: var(--text-secondary);
+      border: 1.5px solid var(--border);
     }
 
+    .btn-upload:hover { border-color: var(--purple-mid); color: var(--purple-mid); }
+
+    .btn-send {
+      background: var(--purple-deep);
+      color: white;
+    }
+
+    .btn-send:hover { background: var(--purple-mid); }
+    .btn-send:disabled { background: var(--border); color: var(--text-muted); cursor: default; }
+
     .rec-timer {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 14px;
+      display: none;
+      font-size: 11px;
+      color: var(--error);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .rec-timer.active { display: inline; }
+
+    /* Proceed banner */
+    .proceed-banner {
+      display: none;
+      background: var(--success-light);
+      border: 1.5px solid var(--success);
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin: 8px 16px;
+      position: fixed;
+      bottom: 70px;
+      left: 0;
+      right: 0;
+      z-index: 99;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .proceed-banner.visible { display: block; }
+
+    .proceed-btn {
+      width: 100%;
+      background: var(--purple-deep);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .proceed-btn:hover { background: var(--purple-mid); }
+
+    .proceed-subtitle {
+      text-align: center;
+      font-size: 12px;
+      color: var(--success);
+      margin-bottom: 8px;
       font-weight: 500;
     }
 
-    .rec-divider {
-      font-size: 12px;
-      color: var(--text-muted);
-      display: none; /* shown via JS if native recording available */
+
+    /* ══════════════════════════════════════════
+       PAGE 2: APPROVAL / COMMIT
+    ══════════════════════════════════════════ */
+
+    #approvalPage {
+      display: none;
+      min-height: 100dvh;
+      background: var(--surface);
+      flex-direction: column;
     }
 
-    .record-upload-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      max-width: 320px;
-      padding: 16px 24px;
-      border: 2px dashed var(--purple-light);
-      border-radius: var(--radius);
-      background: var(--purple-wash);
-      cursor: pointer;
-      transition: all 0.2s;
+    #approvalPage.active { display: flex; }
+
+    .approval-header {
+      background: var(--purple-deep);
+      color: white;
+      padding: 16px 16px 20px;
+      text-align: center;
     }
 
-    .record-upload-btn:hover, .record-upload-btn:active {
-      border-color: var(--purple-deep);
-      background: var(--purple-tint);
+    .approval-header h1 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
     }
 
-    .record-upload-btn .icon { font-size: 28px; }
+    .approval-header p {
+      font-size: 13px;
+      opacity: 0.7;
+    }
 
-    .record-upload-btn .label { text-align: left; }
-
-    .record-upload-btn .label-main {
-      font-size: 15px;
+    .approval-header .merchant-name {
+      display: inline-block;
+      background: rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 4px 12px;
+      font-size: 14px;
       font-weight: 600;
+      margin-top: 8px;
+    }
+
+    .approval-body {
+      flex: 1;
+      padding: 16px;
+      padding-bottom: 100px;
+      overflow-y: auto;
+    }
+
+    .approval-section-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 10px;
+      padding: 0 2px;
+    }
+
+    /* Update cards — large, readable on mobile */
+    .update-card {
+      background: white;
+      border-radius: var(--radius);
+      border: 1.5px solid var(--border);
+      margin-bottom: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.15s;
+    }
+
+    .update-card.excluded {
+      opacity: 0.45;
+      border-color: var(--border);
+    }
+
+    .update-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--purple-light);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .update-card-field {
+      font-size: 14px;
+      font-weight: 700;
       color: var(--purple-deep);
     }
 
-    .record-upload-btn .label-sub {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    .record-upload-btn input[type="file"] { display: none; }
-
-    .audio-preview {
-      margin-top: 16px;
-      display: none;
-    }
-
-    .audio-preview.visible { display: block; }
-
-    .audio-preview-card {
+    /* Toggle switch */
+    .toggle-wrap {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-      background: var(--success-bg);
-      border: 1px solid var(--success);
-      border-radius: var(--radius-sm);
+      gap: 6px;
     }
 
-    .audio-preview-card .check { font-size: 20px; }
-    .audio-preview-card .info { flex: 1; }
-    .audio-preview-card .info .filename { font-size: 13px; font-weight: 500; color: #065F46; }
-    .audio-preview-card .info .meta { font-size: 11px; color: #059669; }
-    .audio-preview-card .remove-btn {
-      background: none;
-      border: none;
-      font-size: 18px;
-      color: #999;
-      cursor: pointer;
-      padding: 4px;
-    }
-
-    .record-hint {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-top: 16px;
-      padding: 8px 12px;
-      background: var(--info-bg);
-      border-radius: var(--radius-sm);
-    }
-
-    /* ============ ANALYSIS / LOADING ============ */
-
-    .loading-container {
-      text-align: center;
-      padding: 40px 0;
-    }
-
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid var(--border);
-      border-top-color: var(--purple-deep);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 16px;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .loading-text {
-      font-size: 14px;
-      color: var(--text-secondary);
-    }
-
-    /* ============ DEAL HEALTH ============ */
-
-    .deal-health {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      padding: 16px;
-      border-radius: var(--radius-sm);
-      margin-bottom: 16px;
-    }
-
-    .deal-health.good { background: var(--success-bg); }
-    .deal-health.moderate { background: var(--warning-bg); }
-    .deal-health.poor { background: var(--danger-bg); }
-
-    .deal-score {
-      font-size: 32px;
-      font-weight: 700;
-      line-height: 1;
-    }
-
-    .deal-score-label {
+    .toggle-wrap span {
       font-size: 11px;
       color: var(--text-muted);
+      font-weight: 500;
     }
 
-    .deal-summary {
-      font-size: 13px;
-      line-height: 1.5;
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
     }
 
-    /* ============ COACHING PANEL ============ */
-
-    .coaching-panel {
-      border: 2px solid var(--gold);
-      border-radius: var(--radius);
-      overflow: hidden;
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
     }
 
-    .coaching-header {
-      background: var(--gold-wash);
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--gold-light);
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--border);
+      border-radius: 24px;
+      transition: background 0.2s;
     }
 
-    .coaching-header h3 {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--gold-text);
+    .toggle-slider:before {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      left: 3px;
+      bottom: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
     }
 
-    .coaching-messages {
-      max-height: 400px;
-      overflow-y: auto;
-      padding: 16px;
+    .toggle-switch input:checked + .toggle-slider {
+      background: var(--success);
     }
 
-    .coaching-msg {
-      margin-bottom: 12px;
-      padding: 10px 14px;
-      border-radius: var(--radius-sm);
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    .coaching-msg.coach {
-      background: var(--gold-wash);
-      border: 1px solid var(--gold-light);
-      margin-right: 24px;
-    }
-
-    .coaching-msg.user {
-      background: var(--purple-wash);
-      border: 1px solid var(--purple-tint);
-      margin-left: 24px;
-    }
-
-    .coaching-input-area {
-      display: flex;
-      gap: 8px;
-      padding: 12px 16px;
-      border-top: 1px solid var(--border);
-      background: #fff;
-    }
-
-    .coaching-input {
-      flex: 1;
-      padding: 8px 12px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      font-family: 'Outfit', sans-serif;
-      font-size: 14px;
-      resize: none;
-      outline: none;
-      min-height: 40px;
-      max-height: 120px;
-    }
-
-    .coaching-input:focus { border-color: var(--gold); }
-
-    /* ============ APPROVAL SCREEN ============ */
-
-    .update-card {
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      margin-bottom: 10px;
-      overflow: hidden;
-    }
-
-    .update-card-header {
-      padding: 10px 14px;
-      background: var(--purple-wash);
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--purple-deep);
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
+    .toggle-switch input:checked + .toggle-slider:before {
+      transform: translateX(20px);
     }
 
     .update-card-body {
-      padding: 12px 14px;
+      padding: 14px 16px;
     }
 
     .update-values {
       display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 8px;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
     }
 
-    .update-current {
-      font-size: 13px;
+    .value-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .value-label {
+      font-size: 11px;
+      font-weight: 600;
       color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      min-width: 50px;
+      padding-top: 2px;
+      flex-shrink: 0;
+    }
+
+    .value-current {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.4;
       text-decoration: line-through;
-      flex: 1;
+      text-decoration-color: var(--error);
+      opacity: 0.7;
     }
 
-    .update-arrow { color: var(--text-muted); font-size: 14px; }
-
-    .update-proposed-input {
-      flex: 1;
-      padding: 6px 10px;
-      border: 1px solid var(--purple-tint);
-      border-radius: 6px;
-      font-family: 'Outfit', sans-serif;
-      font-size: 13px;
-      background: var(--purple-wash);
-      outline: none;
-    }
-
-    .update-proposed-input:focus { border-color: var(--purple-mid); }
-
-    .update-reasoning {
-      font-size: 12px;
-      color: var(--text-muted);
-      font-style: italic;
-    }
-
-    .update-toggle {
+    .value-arrow {
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .observation-card {
-      padding: 12px 14px;
-      background: var(--info-bg);
-      border-radius: var(--radius-sm);
-      margin-bottom: 8px;
-      font-size: 13px;
-    }
-
-    .observation-card .insight { font-weight: 500; margin-bottom: 4px; }
-    .observation-card .suggestion { color: var(--text-secondary); }
-
-    /* ============ TRANSCRIPT ============ */
-
-    .transcript-box {
-      margin-top: 8px;
-      padding: 12px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      font-size: 13px;
-      line-height: 1.6;
-      max-height: 200px;
-      overflow-y: auto;
-      white-space: pre-wrap;
-    }
-
-    /* ============ CONFIRMATION ============ */
-
-    .confirmation {
-      text-align: center;
-      padding: 40px 0;
-    }
-
-    .confirmation-icon {
-      font-size: 48px;
-      margin-bottom: 16px;
-    }
-
-    /* ============ BUTTONS ============ */
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 10px 20px;
-      border-radius: var(--radius-sm);
-      font-family: 'Outfit', sans-serif;
+      color: var(--success);
       font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
+      padding: 0 4px;
+    }
+
+    .value-proposed-input {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 15px;
+      font-family: inherit;
+      color: var(--text-primary);
+      background: var(--surface);
+      outline: none;
+      line-height: 1.4;
+      transition: border-color 0.15s;
+    }
+
+    .value-proposed-input:focus {
+      border-color: var(--purple-mid);
+      background: white;
+    }
+
+    .update-reasoning {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.45;
+      font-style: italic;
+      padding: 10px 12px;
+      background: var(--surface);
+      border-radius: 8px;
+    }
+
+    /* Observation cards */
+    .observation-card {
+      background: white;
+      border: 1.5px solid var(--honey);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+
+    .observation-card .insight {
+      font-size: 14px;
+      line-height: 1.45;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .observation-card .suggestion {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* Approval footer */
+    .approval-footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid var(--border);
+      padding: 12px 16px;
+      padding-bottom: max(12px, env(safe-area-inset-bottom));
+      z-index: 100;
+      display: flex;
+      gap: 10px;
+    }
+
+    .approval-footer .btn {
+      flex: 1;
       border: none;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
       transition: all 0.15s;
     }
 
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-primary { background: var(--purple-deep); color: #fff; }
-    .btn-primary:hover:not(:disabled) { background: var(--purple-mid); }
-    .btn-success { background: var(--success); color: #fff; }
-    .btn-success:hover:not(:disabled) { background: #059669; }
-    .btn-outline { background: #fff; color: var(--text-primary); border: 1px solid var(--border); }
-    .btn-outline:hover:not(:disabled) { background: var(--bg); }
-    .btn-gold { background: var(--gold); color: #fff; }
-    .btn-gold:hover:not(:disabled) { background: var(--gold-bright); }
-    .btn-block { display: flex; width: 100%; }
-    .btn-group { display: flex; gap: 8px; margin-top: 16px; }
-    .btn-group .btn { flex: 1; }
-
-    /* ============ SECTION VISIBILITY ============ */
-
-    .section { display: none; }
-    .section.active { display: block; }
-
-    /* ============ STATUS BADGE ============ */
-
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 500;
+    .btn-back-outline {
+      background: white;
+      color: var(--text-secondary);
+      border: 1.5px solid var(--border) !important;
     }
 
-    .badge-success { background: var(--success-bg); color: #065F46; }
-    .badge-warning { background: var(--warning-bg); color: #92400E; }
-    .badge-danger { background: var(--danger-bg); color: #991B1B; }
-    .badge-info { background: var(--info-bg); color: #1E40AF; }
+    .btn-commit {
+      background: var(--success);
+      color: white;
+      flex: 2 !important;
+    }
 
-    /* ============ RESPONSIVE ============ */
+    .btn-commit:hover { background: #059669; }
+    .btn-commit:disabled { background: var(--border); color: var(--text-muted); cursor: default; }
 
-    @media (max-width: 480px) {
-      .app-container { padding: 8px; }
-      .content-area { padding: 14px; }
-      .header h1 { font-size: 16px; }
+    /* ══════════════════════════════════════════
+       PAGE 3: DONE
+    ══════════════════════════════════════════ */
+
+    #donePage {
+      display: none;
+      min-height: 100dvh;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 24px;
+      background: var(--surface);
+    }
+
+    #donePage.active { display: flex; }
+
+    .done-icon {
+      width: 72px;
+      height: 72px;
+      background: var(--success-light);
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      margin-bottom: 20px;
+    }
+
+    #donePage h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    #donePage .done-detail {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      max-width: 300px;
+      margin-bottom: 8px;
+    }
+
+    #donePage .fi-note {
+      font-size: 12px;
+      color: var(--purple-mid);
+      margin-bottom: 24px;
+    }
+
+    .done-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      max-width: 300px;
+    }
+
+    .done-actions .btn {
+      border: none;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .done-actions .btn-primary {
+      background: var(--purple-deep);
+      color: white;
+    }
+
+    .done-actions .btn-outline {
+      background: white;
+      color: var(--text-primary);
+      border: 1.5px solid var(--border) !important;
+    }
+
+    /* Responsive */
+    @media (min-width: 600px) {
+      .chat-area, .approval-body { max-width: 600px; margin: 0 auto; width: 100%; }
+      .input-area > *, .approval-footer > * { max-width: 600px; }
+      .input-area, .approval-footer { display: flex; justify-content: center; }
+      .message { max-width: 80%; }
+      .proceed-banner { left: 16px; right: 16px; }
     }
   </style>
 </head>
 <body>
 
-  <div class="app-container">
+  <!-- ════════════════════════════════════════
+       PAGE 1: CHAT / DEBRIEF
+  ════════════════════════════════════════ -->
+  <div id="chatPage">
     <div class="header">
-      <button class="back-btn" onclick="goBack()">←</button>
-      <span style="font-size:20px;">📞</span>
-      <h1>Log a Call</h1>
+      <button class="header-back" onclick="goBack()" title="Back">←</button>
+      <div class="header-icon">🎙️</div>
+      <div class="header-text">
+        <h1>Call Debrief</h1>
+        <p id="headerSubtext">Record & review your merchant call</p>
+      </div>
     </div>
 
-    <div class="content-area">
+    <div class="merchant-bar">
+      <label>Merchant</label>
+      <select class="merchant-select" id="merchantSelect">
+        <option value="">Auto-detect from recording</option>
+      </select>
+    </div>
 
-      <!-- Step dots -->
-      <div class="steps">
-        <div class="step-dot active" id="dot-1"></div>
-        <div class="step-dot" id="dot-2"></div>
-        <div class="step-dot" id="dot-3"></div>
-        <div class="step-dot" id="dot-4"></div>
-        <div class="step-dot" id="dot-5"></div>
+    <div class="chat-area" id="chatArea">
+      <div class="welcome" id="welcomeState">
+        <div class="welcome-icon">🎯</div>
+        <h2>Debrief Your Call</h2>
+        <p>Record a voice note about the call you just had, or upload a recording. The AI will analyse it and coach you through any blind spots.</p>
+        <div class="hint" id="platformHint"></div>
       </div>
+    </div>
 
-      <!-- ===== STEP 1: MERCHANT SELECT + RECORD ===== -->
-      <div class="section active" id="step-select">
-        <div class="card-label">Step 1 of 5</div>
-        <h2 style="font-size:18px; margin-bottom:4px;">Who did you call?</h2>
-        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px;">
-          Select the merchant, or skip to let AI identify them from your voice note.
-        </p>
+    <!-- Proceed to approval (shown when coaching completes) -->
+    <div class="proceed-banner" id="proceedBanner">
+      <div class="proceed-subtitle">✓ Debrief complete</div>
+      <button class="proceed-btn" onclick="showApprovalPage()">Review Pipeline Updates →</button>
+    </div>
 
-        <input type="text" class="merchant-search" id="merchantSearch"
-          placeholder="Search merchants..." oninput="filterMerchants()">
-
-        <div class="merchant-list" id="merchantList"></div>
-
-        <button class="skip-select-btn" onclick="skipSelection()">
-          Skip — let AI identify the merchant from my recording
-        </button>
-
-        <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px;">
-          <div class="card-label">Record your call debrief</div>
-
-          <div class="recorder-area">
-            <div class="recorder-methods">
-
-              <!-- Native recording (shown if MediaRecorder is available) -->
-              <button class="native-record-btn" id="nativeRecordBtn" onclick="toggleNativeRecording()">
-                <span class="rec-indicator"></span>
-                <span id="nativeRecordLabel">Tap to Record</span>
-                <span class="rec-timer" id="recTimer" style="display:none;">0:00</span>
-              </button>
-
-              <span class="rec-divider" id="recDivider">— or upload a file —</span>
-
-              <!-- File upload fallback -->
-              <label class="record-upload-btn" id="recordUploadBtn">
-                <span class="icon">📁</span>
-                <span class="label">
-                  <span class="label-main" id="uploadLabel">Upload voice note</span>
-                  <span class="label-sub" id="uploadSublabel">Select a recording from your files</span>
-                </span>
-                <input type="file" id="audioFileInput" accept="audio/*,.m4a,.mp3,.wav,.webm,.ogg,.aac,.caf"
-                  onchange="handleAudioFile(this)">
-              </label>
-            </div>
-
-            <!-- Audio preview (shown after file selected) -->
-            <div class="audio-preview" id="audioPreview">
-              <div class="audio-preview-card">
-                <span class="check">✅</span>
-                <div class="info">
-                  <div class="filename" id="audioFilename"></div>
-                  <div class="meta" id="audioMeta"></div>
-                </div>
-                <button class="remove-btn" onclick="removeAudio()" title="Remove">✕</button>
-              </div>
-            </div>
-
-            <div class="record-hint" id="recordHint">
-              💡 Give a quick verbal debrief: what you discussed, what the merchant said, any objections, and next steps. 30 seconds to 2 minutes is ideal.
-            </div>
-
-            <!-- Platform-specific tip -->
-            <div class="record-hint" style="margin-top:8px; background:var(--gold-wash);" id="platformTip"></div>
-          </div>
-        </div>
-
-        <div class="btn-group">
-          <button class="btn btn-primary btn-block" id="submitRecordingBtn"
-            onclick="submitRecording()" disabled>
-            Analyse Call →
-          </button>
-        </div>
+    <div class="input-area" id="chatInputArea">
+      <div class="audio-preview" id="audioPreview">
+        <span>🎙️</span>
+        <span class="filename" id="audioFilename">recording.webm</span>
+        <span class="rec-timer" id="recDuration"></span>
+        <button class="remove-btn" onclick="removeAudio()" title="Remove">✕</button>
       </div>
-
-      <!-- ===== STEP 2: PROCESSING ===== -->
-      <div class="section" id="step-processing">
-        <div class="loading-container">
-          <div class="spinner"></div>
-          <div class="loading-text" id="processingText">Transcribing your voice note...</div>
+      <div class="input-row">
+        <button class="btn-icon btn-voice" id="voiceBtn" onclick="toggleRecording()" title="Record voice">🎤</button>
+        <button class="btn-icon btn-upload" onclick="document.getElementById('fileInput').click()" title="Upload file">📎</button>
+        <input type="file" id="fileInput" accept="audio/*,video/quicktime,.m4a,.mp3,.wav,.ogg,.webm,.mp4,.mov"
+               style="display:none" onchange="handleFileUpload(event)">
+        <div class="text-input-wrap">
+          <textarea class="text-input" id="textInput" rows="1"
+                    placeholder="Type a response..."
+                    onkeydown="handleKeydown(event)"
+                    oninput="autoResize(this)"
+                    disabled></textarea>
         </div>
+        <button class="btn-icon btn-send" id="sendBtn" onclick="handleSend()" disabled title="Send">➤</button>
       </div>
-
-      <!-- ===== STEP 2b: MERCHANT DISAMBIGUATION ===== -->
-      <div class="section" id="step-disambiguate">
-        <div class="card-label">Merchant Match</div>
-        <h2 style="font-size:18px; margin-bottom:4px;">Which merchant?</h2>
-        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px;">
-          We found possible matches from your voice note. Select the correct one.
-        </p>
-
-        <div id="candidateList"></div>
-
-        <div style="margin-top:12px;">
-          <p style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">Not listed? Search:</p>
-          <input type="text" class="merchant-search" id="disambigSearch"
-            placeholder="Search all merchants..." oninput="filterDisambigMerchants()">
-          <div class="merchant-list" id="disambigFullList" style="display:none;"></div>
-        </div>
-      </div>
-
-      <!-- ===== STEP 3: ANALYSIS + COACHING ===== -->
-      <div class="section" id="step-coaching">
-        <div class="card-label">Step 3 of 5</div>
-
-        <!-- Merchant banner -->
-        <div class="card" id="merchantBanner">
-          <div class="card-label">Merchant</div>
-          <div class="card-title" id="merchantBannerName"></div>
-          <div class="card-subtitle" id="merchantBannerMeta"></div>
-        </div>
-
-        <!-- Transcript (collapsible) -->
-        <details style="margin-bottom:16px;">
-          <summary style="font-size:13px; color:var(--text-muted); cursor:pointer;">
-            View transcript
-          </summary>
-          <div class="transcript-box" id="transcriptDisplay"></div>
-        </details>
-
-        <!-- Deal Health -->
-        <div class="deal-health" id="dealHealthCard">
-          <div>
-            <div class="deal-score" id="dealScore"></div>
-            <div class="deal-score-label">/10</div>
-          </div>
-          <div class="deal-summary" id="dealSummary"></div>
-        </div>
-
-        <!-- Coaching Panel (shown if weak points exist) -->
-        <div id="coachingSection" style="display:none;">
-          <div class="coaching-panel">
-            <div class="coaching-header">
-              <span>🎯</span>
-              <h3>Deal Coach</h3>
-              <span class="badge badge-warning" id="weakPointsBadge"></span>
-            </div>
-            <div class="coaching-messages" id="coachingMessages"></div>
-            <div class="coaching-input-area" id="coachingInputArea">
-              <textarea class="coaching-input" id="coachingInput"
-                placeholder="Your response..." rows="1"
-                onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendCoachingReply();}"></textarea>
-              <button class="btn btn-gold" onclick="sendCoachingReply()" id="coachingSendBtn">
-                Send
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- No coaching needed message -->
-        <div id="noCoachingSection" style="display:none;">
-          <div class="card" style="background:var(--success-bg); border-color:var(--success);">
-            <div class="card-title" style="color:#065F46;">✅ No coaching needed</div>
-            <div class="card-subtitle" style="color:#065F46;">
-              The deal looks solid. Proceed to review suggested updates.
-            </div>
-          </div>
-        </div>
-
-        <!-- Proceed button (shown after coaching complete or no coaching) -->
-        <div class="btn-group" id="proceedToApproval" style="display:none;">
-          <button class="btn btn-primary btn-block" onclick="showApprovalScreen()">
-            Review Updates →
-          </button>
-        </div>
-      </div>
-
-      <!-- ===== STEP 4: APPROVAL SCREEN ===== -->
-      <div class="section" id="step-approval">
-        <div class="card-label">Step 4 of 5</div>
-        <h2 style="font-size:18px; margin-bottom:4px;">Review & Approve</h2>
-        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px;">
-          Toggle updates on/off and edit values before committing.
-        </p>
-
-        <div id="proposedUpdatesList"></div>
-
-        <div id="observationsList" style="display:none;">
-          <div class="card-label" style="margin-top:20px;">Observations (informational)</div>
-          <div id="observationsContent"></div>
-        </div>
-
-        <div class="btn-group">
-          <button class="btn btn-outline" onclick="showSection('step-coaching')">← Back</button>
-          <button class="btn btn-success" onclick="commitUpdates()" id="commitBtn">
-            ✓ Commit to Pipeline
-          </button>
-        </div>
-      </div>
-
-      <!-- ===== STEP 5: CONFIRMATION ===== -->
-      <div class="section" id="step-done">
-        <div class="confirmation">
-          <div class="confirmation-icon">✅</div>
-          <h2 style="font-size:20px; margin-bottom:8px;">Call Logged</h2>
-          <p style="font-size:14px; color:var(--text-secondary); margin-bottom:4px;"
-            id="doneMessage"></p>
-          <p style="font-size:13px; color:var(--text-muted);" id="doneDetails"></p>
-        </div>
-        <div class="btn-group">
-          <button class="btn btn-outline btn-block" onclick="resetFlow()">
-            Log Another Call
-          </button>
-          <button class="btn btn-primary btn-block" onclick="goBack()">
-            Back to Customer AI
-          </button>
-        </div>
-      </div>
-
     </div>
   </div>
 
+  <!-- ════════════════════════════════════════
+       PAGE 2: APPROVAL
+  ════════════════════════════════════════ -->
+  <div id="approvalPage">
+    <div class="approval-header">
+      <h1>Pipeline Updates</h1>
+      <p>Review and edit before committing</p>
+      <div class="merchant-name" id="approvalMerchantName"></div>
+    </div>
+
+    <div class="approval-body" id="approvalBody">
+      <div class="approval-section-label" style="margin-top:4px;">Proposed Changes</div>
+      <div id="updateCards"></div>
+
+      <div id="observationsSection" class="hidden">
+        <div class="approval-section-label" style="margin-top:20px;">Observations (Info Only)</div>
+        <div id="observationCards"></div>
+      </div>
+    </div>
+
+    <div class="approval-footer">
+      <button class="btn btn-back-outline" onclick="backToChat()">← Back</button>
+      <button class="btn btn-commit" id="commitBtn" onclick="commitUpdates()">✓ Commit</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       PAGE 3: DONE
+  ════════════════════════════════════════ -->
+  <div id="donePage">
+    <div class="done-icon">✅</div>
+    <h2>Call Logged</h2>
+    <p class="done-detail" id="doneMessage"></p>
+    <p class="fi-note" id="doneFieldIntel"></p>
+    <div class="done-actions">
+      <button class="btn btn-primary" onclick="resetFlow()">Log Another Call</button>
+      <button class="btn btn-outline" onclick="goBack()">Back to Customer AI</button>
+    </div>
+  </div>
+
+
 <script>
 // ============================================================
-// PWA API CONFIGURATION
-// Shares the same localStorage key as the main Customer AI PWA
+// CONFIG
 // ============================================================
 
-var STORAGE_KEY = 'magic_customer_ai_url';
-var HARDCODED_URL = 'https://script.google.com/macros/s/AKfycbyh1lHchh9AEbOl1fvV0dJGxfQz87YGIqy3eIm-2-MFXC80TBJthqV1RwC6zCANrvIN/exec';
-var API_URL = localStorage.getItem(STORAGE_KEY) || HARDCODED_URL;
-
-/**
- * Unified server call helper.
- * Sends a POST to the Apps Script doPost() endpoint with the
- * correct action routing. All backend calls go through this.
- *
- * @param {string} action - The doPost action name
- * @param {Object} params - Parameters (sent as body.params)
- * @returns {Promise<Object>} - Parsed JSON response
- */
-function callServer(action, params) {
-  if (!API_URL) {
-    return Promise.reject(new Error('API URL not configured. Open Customer AI first to set it.'));
-  }
-
-  var body = { action: action };
-  if (params !== undefined) body.params = params;
-
-  return fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(body),
-    redirect: 'follow'
-  }).then(function(response) {
-    if (!response.ok) throw new Error('HTTP ' + response.status);
-    return response.json();
-  });
-}
-
+var DEPLOYMENT_URL = 'https://script.google.com/macros/s/AKfycbw8Hm3aW2BY8iJAkZb3JVLcIJOWbW-1S6e2gTMW_mDnOHNHRiMI2Tqyg7qiasm9yxHP/exec';
 
 // ============================================================
 // STATE
 // ============================================================
 
 var state = {
-  currentStep: 'step-select',
-  selectedMerchantId: null,
-  selectedMerchantName: null,
-  allMerchants: [],
   userName: '',
+  phase: 'record',  // record → analysing → coaching → approval → done
+  allMerchants: [],
 
-  // Audio capture
+  // Audio
   audioBase64: null,
   audioMimeType: null,
-  audioFileName: null,
+  isRecording: false,
 
   // Analysis results
   transcript: '',
@@ -932,426 +1043,267 @@ var state = {
   // Coaching
   coachingHistory: [],
   coachingSummary: null,
-
-  // Approval
-  approvedUpdates: []
+  coachingComplete: false,
+  isProcessing: false
 };
 
+var mediaRecorder = null;
+var audioChunks = [];
+var recordingTimer = null;
+var recordingSeconds = 0;
+
 
 // ============================================================
-// INITIALIZATION
+// INIT
 // ============================================================
 
-window.addEventListener('DOMContentLoaded', function() {
-  // Check API URL
-  if (!API_URL) {
-    API_URL = HARDCODED_URL;
-  }
-  // Ensure localStorage is populated for future loads
-  try { localStorage.setItem(STORAGE_KEY, API_URL); } catch(e) {}
-
-  // Get userName from URL parameter or prompt
+document.addEventListener('DOMContentLoaded', function() {
   var params = new URLSearchParams(window.location.search);
   state.userName = params.get('user') || '';
-
-  // Platform-specific recording tips
-  var tipEl = document.getElementById('platformTip');
-  var ua = navigator.userAgent || '';
-
-  // Check for native recording support (only works outside iframe)
-  var hasMediaRecorder = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
-
-  if (hasMediaRecorder) {
-    document.getElementById('nativeRecordBtn').style.display = 'inline-flex';
-    document.getElementById('recDivider').style.display = 'block';
-    tipEl.innerHTML = '🎙️ <strong>Record directly</strong> in the app, or upload a file from your device. Recordings are processed as audio — keep them under 2 minutes for best results.';
-  } else if (/iPhone|iPad|iPod/.test(ua)) {
-    tipEl.innerHTML = '📱 <strong>iPhone tip:</strong> Open the <strong>Voice Memos</strong> app, record your debrief, then come back here and tap the upload button. Select your recording from <strong>Recents</strong> in the file picker.';
-  } else if (/Android/.test(ua)) {
-    tipEl.innerHTML = '📱 <strong>Android tip:</strong> Tap the upload button — your phone\'s audio recorder should open. Record your debrief and confirm.';
-  } else {
-    tipEl.innerHTML = '💻 <strong>Desktop:</strong> Record a voice note using any app (Voice Memos, Audacity, your phone), then upload the audio file here.';
+  if (state.userName) {
+    document.getElementById('headerSubtext').textContent = 'Session — ' + state.userName;
   }
 
-  // Load Pipeline merchants for selection via doPost
+  // Platform hint
+  var hint = document.getElementById('platformHint');
+  var ua = navigator.userAgent || '';
+  if (/iPhone|iPad|iPod/.test(ua)) {
+    hint.innerHTML = '<strong>iPhone:</strong> Tap 🎤 to record directly, or 📎 to upload from Voice Memos.';
+  } else if (/Android/.test(ua)) {
+    hint.innerHTML = '<strong>Android:</strong> Tap 🎤 to record, or 📎 to upload an audio file.';
+  } else {
+    hint.innerHTML = '<strong>Desktop:</strong> Tap 🎤 to record, or 📎 to upload a recording.';
+  }
+
+  // Load merchants
   callServer('getMerchantList')
     .then(function(result) {
-      if (result && result.ok) {
-        state.allMerchants = result.merchants || [];
-      } else if (Array.isArray(result)) {
-        // backward compat if array returned directly
-        state.allMerchants = result;
-      } else {
-        state.allMerchants = [];
+      var merchants = [];
+      if (result && result.ok && result.merchants) merchants = result.merchants;
+      else if (Array.isArray(result)) merchants = result;
+      state.allMerchants = merchants;
+
+      var sel = document.getElementById('merchantSelect');
+      for (var i = 0; i < merchants.length; i++) {
+        var opt = document.createElement('option');
+        opt.value = merchants[i].id;
+        opt.textContent = merchants[i].name + ' (' + (merchants[i].category || '') + ')';
+        sel.appendChild(opt);
       }
-      renderMerchantList(state.allMerchants, 'merchantList');
     })
-    .catch(function(err) {
-      console.error('Failed to load merchants:', err);
-      // Show inline message instead of blocking
-      document.getElementById('merchantList').innerHTML =
-        '<p style="font-size:13px; color:var(--danger); padding:12px;">Could not load merchant list. Check your connection and refresh.</p>';
-    });
+    .catch(function() {});
 });
 
 
 // ============================================================
-// NAVIGATION
+// SERVER COMMUNICATION
 // ============================================================
 
-function showSection(sectionId) {
-  var sections = document.querySelectorAll('.section');
-  for (var i = 0; i < sections.length; i++) {
-    sections[i].classList.remove('active');
-  }
-  document.getElementById(sectionId).classList.add('active');
-  state.currentStep = sectionId;
-  updateStepDots();
-}
-
-function updateStepDots() {
-  var stepMap = {
-    'step-select': 1, 'step-processing': 2, 'step-disambiguate': 2,
-    'step-coaching': 3, 'step-approval': 4, 'step-done': 5
-  };
-  var current = stepMap[state.currentStep] || 1;
-
-  for (var i = 1; i <= 5; i++) {
-    var dot = document.getElementById('dot-' + i);
-    dot.className = 'step-dot';
-    if (i < current) dot.classList.add('complete');
-    if (i === current) dot.classList.add('active');
-  }
-}
-
-function goBack() {
-  window.location.href = './index.html';
-}
-
-
-// ============================================================
-// MERCHANT SELECTION
-// ============================================================
-
-function renderMerchantList(merchants, containerId) {
-  var container = document.getElementById(containerId);
-  container.innerHTML = '';
-
-  for (var i = 0; i < merchants.length; i++) {
-    var m = merchants[i];
-    var div = document.createElement('div');
-    div.className = 'merchant-item';
-    div.setAttribute('data-id', m.id);
-    div.innerHTML = '<div>'
-      + '<div class="name">' + escapeHtml(m.name) + '</div>'
-      + '<div class="meta">' + escapeHtml(m.id) + ' · ' + escapeHtml(m.category || '')
-      + ' · ' + escapeHtml(m.neighbourhood || '') + '</div>'
-      + '</div>'
-      + '<span class="badge badge-info">' + escapeHtml(m.status || '') + '</span>';
-
-    div.onclick = (function(merchant) {
-      return function() { selectMerchant(merchant.id, merchant.name); };
-    })(m);
-
-    container.appendChild(div);
-  }
-}
-
-function filterMerchants() {
-  var query = document.getElementById('merchantSearch').value.toLowerCase().trim();
-  var filtered = state.allMerchants.filter(function(m) {
-    return m.name.toLowerCase().indexOf(query) > -1
-      || m.id.toLowerCase().indexOf(query) > -1
-      || (m.category || '').toLowerCase().indexOf(query) > -1
-      || (m.contactName || '').toLowerCase().indexOf(query) > -1;
+function callServer(action, data) {
+  var payload = Object.assign({ action: action }, data || {});
+  return fetch(DEPLOYMENT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload)
+  })
+  .then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
   });
-  renderMerchantList(filtered, 'merchantList');
-}
-
-function selectMerchant(id, name) {
-  state.selectedMerchantId = id;
-  state.selectedMerchantName = name;
-
-  // Highlight selected
-  var items = document.querySelectorAll('#merchantList .merchant-item');
-  for (var i = 0; i < items.length; i++) {
-    items[i].classList.remove('selected');
-    if (items[i].getAttribute('data-id') === id) {
-      items[i].classList.add('selected');
-    }
-  }
-
-  updateSubmitButton();
-}
-
-function skipSelection() {
-  state.selectedMerchantId = null;
-  state.selectedMerchantName = null;
-
-  // Deselect all
-  var items = document.querySelectorAll('#merchantList .merchant-item');
-  for (var i = 0; i < items.length; i++) {
-    items[i].classList.remove('selected');
-  }
-
-  updateSubmitButton();
-}
-
-function updateSubmitButton() {
-  var btn = document.getElementById('submitRecordingBtn');
-  btn.disabled = !state.audioBase64;
 }
 
 
 // ============================================================
-// AUDIO CAPTURE (File Input)
+// VOICE RECORDING
 // ============================================================
 
-function handleAudioFile(input) {
-  var file = input.files[0];
-  if (!file) return;
-
-  var fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
-  var fileType = file.type || '';
-
-  // Warn if it's a video file (iOS may still produce .MOV in some flows)
-  if (fileType.indexOf('video') > -1) {
-    var proceed = confirm(
-      'This looks like a video file (' + fileSizeMB + ' MB). '
-      + 'Video files are much larger than audio.\n\n'
-      + 'For faster processing, try recording with Voice Memos (iPhone) '
-      + 'or a voice recorder app instead.\n\n'
-      + 'Use this file anyway?'
-    );
-    if (!proceed) {
-      input.value = '';
-      return;
-    }
-  }
-
-  state.audioFileName = file.name;
-  state.audioMimeType = fileType || 'audio/mp4';
-
-  // Show preview
-  document.getElementById('audioFilename').textContent = file.name;
-  document.getElementById('audioMeta').textContent =
-    (fileType || 'unknown type') + ' · ' + fileSizeMB + ' MB';
-  document.getElementById('audioPreview').classList.add('visible');
-
-  // Update upload button appearance
-  document.getElementById('uploadLabel').textContent = 'Change recording';
-  document.getElementById('uploadSublabel').textContent = 'Tap to select a different file';
-
-  // Warn if file is very large (>10MB)
-  if (file.size > 10 * 1024 * 1024) {
-    alert('This file is ' + fileSizeMB + ' MB. Large files may take longer to process. '
-      + 'For best results, keep recordings under 2 minutes.');
-  }
-
-  // Convert to base64
-  var reader = new FileReader();
-  reader.onloadend = function() {
-    state.audioBase64 = reader.result.split(',')[1];
-    updateSubmitButton();
-  };
-  reader.onerror = function() {
-    alert('Error reading file. Please try again.');
-    removeAudio();
-  };
-  reader.readAsDataURL(file);
+function toggleRecording() {
+  if (state.isRecording) { stopRecording(); }
+  else { startRecording(); }
 }
 
-function removeAudio() {
-  // Stop native recording if active
-  if (mediaRecorder && mediaRecorder.state === 'recording') {
-    mediaRecorder.stop();
+function startRecording() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    alert('Microphone not available. Use the 📎 button to upload a file instead.');
+    return;
   }
 
-  state.audioBase64 = null;
-  state.audioMimeType = null;
-  state.audioFileName = null;
-
-  document.getElementById('audioFileInput').value = '';
-  document.getElementById('audioPreview').classList.remove('visible');
-  document.getElementById('uploadLabel').textContent = 'Upload voice note';
-  document.getElementById('uploadSublabel').textContent = 'Select a recording from your files';
-
-  // Reset native record button
-  var btn = document.getElementById('nativeRecordBtn');
-  if (btn) {
-    btn.classList.remove('recording');
-    document.getElementById('nativeRecordLabel').textContent = 'Tap to Record';
-    document.getElementById('recTimer').style.display = 'none';
-    clearInterval(recordingTimerInterval);
-  }
-
-  updateSubmitButton();
-}
-
-
-// ============================================================
-// NATIVE AUDIO RECORDING (MediaRecorder API)
-// Available in PWA because we're outside the iframe sandbox
-// ============================================================
-
-var mediaRecorder = null;
-var audioChunks = [];
-var recordingStartTime = null;
-var recordingTimerInterval = null;
-
-function toggleNativeRecording() {
-  if (mediaRecorder && mediaRecorder.state === 'recording') {
-    stopNativeRecording();
-  } else {
-    startNativeRecording();
-  }
-}
-
-function startNativeRecording() {
   navigator.mediaDevices.getUserMedia({ audio: true })
     .then(function(stream) {
-      // Determine best supported MIME type
-      var mimeType = 'audio/webm;codecs=opus';
-      if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = 'audio/webm';
-      }
-      if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = 'audio/mp4';
-      }
-      if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = ''; // let browser choose
-      }
+      var mime = 'audio/webm;codecs=opus';
+      if (!MediaRecorder.isTypeSupported(mime)) mime = 'audio/webm';
+      if (!MediaRecorder.isTypeSupported(mime)) mime = 'audio/mp4';
+      if (!MediaRecorder.isTypeSupported(mime)) mime = '';
 
-      var options = mimeType ? { mimeType: mimeType } : {};
-      mediaRecorder = new MediaRecorder(stream, options);
+      mediaRecorder = new MediaRecorder(stream, mime ? { mimeType: mime } : {});
       audioChunks = [];
 
-      mediaRecorder.ondataavailable = function(e) {
-        if (e.data.size > 0) audioChunks.push(e.data);
-      };
+      mediaRecorder.ondataavailable = function(e) { if (e.data.size > 0) audioChunks.push(e.data); };
 
       mediaRecorder.onstop = function() {
-        // Stop all tracks
         stream.getTracks().forEach(function(t) { t.stop(); });
-
         var blob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
         state.audioMimeType = mediaRecorder.mimeType || 'audio/webm';
-        state.audioFileName = 'recording.' + (state.audioMimeType.indexOf('mp4') > -1 ? 'm4a' : 'webm');
 
-        // Show preview
-        var sizeMB = (blob.size / (1024 * 1024)).toFixed(1);
-        document.getElementById('audioFilename').textContent = 'Voice recording (' + formatRecordingTime(Date.now() - recordingStartTime) + ')';
-        document.getElementById('audioMeta').textContent = state.audioMimeType + ' · ' + sizeMB + ' MB';
-        document.getElementById('audioPreview').classList.add('visible');
-
-        // Convert to base64
         var reader = new FileReader();
         reader.onloadend = function() {
           state.audioBase64 = reader.result.split(',')[1];
-          updateSubmitButton();
+          document.getElementById('audioFilename').textContent = 'Voice recording (' + fmtTime(recordingSeconds) + ')';
+          document.getElementById('audioPreview').classList.add('visible');
+          updateSendBtn();
         };
         reader.readAsDataURL(blob);
-
-        // Reset button
-        var btn = document.getElementById('nativeRecordBtn');
-        btn.classList.remove('recording');
-        document.getElementById('nativeRecordLabel').textContent = 'Tap to Record';
-        document.getElementById('recTimer').style.display = 'none';
-        clearInterval(recordingTimerInterval);
       };
 
-      // Start recording
-      mediaRecorder.start(1000); // collect data every second
-      recordingStartTime = Date.now();
+      mediaRecorder.start(1000);
+      state.isRecording = true;
+      recordingSeconds = 0;
 
-      // Update UI
-      var btn = document.getElementById('nativeRecordBtn');
-      btn.classList.add('recording');
-      document.getElementById('nativeRecordLabel').textContent = 'Recording...';
-      document.getElementById('recTimer').style.display = 'inline';
-      document.getElementById('recTimer').textContent = '0:00';
+      document.getElementById('voiceBtn').classList.add('recording');
+      document.getElementById('voiceBtn').textContent = '⏹';
+      document.getElementById('audioPreview').classList.add('visible');
+      document.getElementById('audioFilename').textContent = 'Recording...';
 
-      recordingTimerInterval = setInterval(function() {
-        var elapsed = Date.now() - recordingStartTime;
-        document.getElementById('recTimer').textContent = formatRecordingTime(elapsed);
+      var timer = document.getElementById('recDuration');
+      timer.classList.add('active');
+      recordingTimer = setInterval(function() {
+        recordingSeconds++;
+        timer.textContent = fmtTime(recordingSeconds);
+        if (recordingSeconds >= 180) stopRecording();
       }, 1000);
-
-    }).catch(function(err) {
-      if (err.name === 'NotAllowedError') {
-        alert('Microphone access was denied.\n\nPlease allow microphone access in your browser settings and try again.');
-      } else {
-        alert('Could not access microphone: ' + err.message + '\n\nTry using the file upload option instead.');
-      }
-    });
+    })
+    .catch(function(err) { alert('Microphone error: ' + err.message); });
 }
 
-function stopNativeRecording() {
-  if (mediaRecorder && mediaRecorder.state === 'recording') {
-    mediaRecorder.stop();
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+  state.isRecording = false;
+  clearInterval(recordingTimer);
+  document.getElementById('voiceBtn').classList.remove('recording');
+  document.getElementById('voiceBtn').textContent = '🎤';
+  document.getElementById('recDuration').classList.remove('active');
+}
+
+function handleFileUpload(e) {
+  var file = e.target.files && e.target.files[0];
+  if (!file) return;
+
+  state.audioMimeType = file.type || 'audio/mp4';
+  var reader = new FileReader();
+  reader.onloadend = function() {
+    state.audioBase64 = reader.result.split(',')[1];
+    document.getElementById('audioFilename').textContent = file.name;
+    document.getElementById('audioPreview').classList.add('visible');
+    updateSendBtn();
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+
+function removeAudio() {
+  if (state.isRecording) stopRecording();
+  state.audioBase64 = null;
+  state.audioMimeType = null;
+  document.getElementById('audioPreview').classList.remove('visible');
+  updateSendBtn();
+}
+
+function fmtTime(s) { return Math.floor(s/60) + ':' + (s%60<10?'0':'') + s%60; }
+
+
+// ============================================================
+// SEND / INPUT HANDLING
+// ============================================================
+
+function handleSend() {
+  if (state.isProcessing) return;
+
+  if (state.phase === 'record' && state.audioBase64) {
+    submitRecording();
+  } else if (state.phase === 'coaching') {
+    sendCoachingMessage();
   }
 }
 
-function formatRecordingTime(ms) {
-  var totalSec = Math.floor(ms / 1000);
-  var min = Math.floor(totalSec / 60);
-  var sec = totalSec % 60;
-  return min + ':' + (sec < 10 ? '0' : '') + sec;
+function handleKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 110) + 'px';
+  updateSendBtn();
+}
+
+function updateSendBtn() {
+  var hasAudio = !!state.audioBase64;
+  var hasText = !!document.getElementById('textInput').value.trim();
+  var canSend = false;
+
+  if (state.phase === 'record') canSend = hasAudio;
+  else if (state.phase === 'coaching') canSend = hasText;
+
+  document.getElementById('sendBtn').disabled = !canSend || state.isProcessing;
 }
 
 
 // ============================================================
-// SUBMIT RECORDING FOR ANALYSIS
+// STEP 1: SUBMIT RECORDING FOR ANALYSIS
 // ============================================================
 
 function submitRecording() {
-  if (!state.audioBase64) return;
+  var welcomeEl = document.getElementById('welcomeState');
+  if (welcomeEl) welcomeEl.remove();
 
-  showSection('step-processing');
-  updateProcessingText('Transcribing your voice note...');
+  // Show user message
+  addMsg('user', '🎙️ Voice note submitted for analysis');
 
-  // If no username yet, use a prompt
-  if (!state.userName) {
-    state.userName = prompt('Enter your name:') || 'Team Member';
-  }
+  var merchantId = document.getElementById('merchantSelect').value || null;
+  var audioB64 = state.audioBase64;
+  var audioMime = state.audioMimeType;
+
+  removeAudio();
+  state.phase = 'analysing';
+  state.isProcessing = true;
+  updateSendBtn();
+
+  // Hide merchant bar
+  document.querySelector('.merchant-bar').style.display = 'none';
+
+  var proc = showProcessing('Transcribing your voice note...');
 
   callServer('processVoiceNote', {
-    audioBase64: state.audioBase64,
-    audioMimeType: state.audioMimeType,
-    merchantId: state.selectedMerchantId,
+    audioBase64: audioB64,
+    audioMimeType: audioMime,
+    merchantId: merchantId,
     userName: state.userName
   }).then(function(result) {
-    handleProcessingResult(result);
+    proc.remove();
+
+    if (!result.ok) {
+      addMsg('system', '⚠️ ' + (result.error || 'Analysis failed'));
+      state.phase = 'record';
+      state.isProcessing = false;
+      document.querySelector('.merchant-bar').style.display = 'flex';
+      updateSendBtn();
+      return;
+    }
+
+    // Handle merchant disambiguation
+    if (result.merchantCandidates && !result.merchantRecord) {
+      handleDisambiguation(result);
+      return;
+    }
+
+    handleAnalysisComplete(result);
   }).catch(function(err) {
-    alert('Error: ' + (err.message || err));
-    showSection('step-select');
+    proc.remove();
+    addMsg('system', '⚠️ Connection error: ' + err.message);
+    state.phase = 'record';
+    state.isProcessing = false;
+    document.querySelector('.merchant-bar').style.display = 'flex';
+    updateSendBtn();
   });
-}
-
-function handleProcessingResult(result) {
-  if (!result.ok) {
-    alert('Error: ' + result.error);
-    showSection('step-select');
-    return;
-  }
-
-  state.transcript = result.transcript || '';
-
-  // Does user need to select a merchant?
-  if (result.needsMerchantSelection) {
-    showDisambiguation(result.merchantCandidates || [], result.transcriptionAnalysis);
-    return;
-  }
-
-  // Analysis complete — proceed to coaching
-  state.merchantRecord = result.merchantRecord;
-  state.interactionHistory = result.interactionHistory || [];
-  state.analysis = result.analysis;
-
-  showCoachingStep();
-}
-
-function updateProcessingText(text) {
-  document.getElementById('processingText').textContent = text;
 }
 
 
@@ -1359,152 +1311,117 @@ function updateProcessingText(text) {
 // MERCHANT DISAMBIGUATION
 // ============================================================
 
-function showDisambiguation(candidates, transcriptionAnalysis) {
-  showSection('step-disambiguate');
+function handleDisambiguation(result) {
+  state.transcript = result.transcript;
 
-  var container = document.getElementById('candidateList');
-  container.innerHTML = '';
-
-  if (candidates.length > 0) {
-    for (var i = 0; i < candidates.length; i++) {
-      var c = candidates[i];
-      var div = document.createElement('div');
-      div.className = 'merchant-item';
-      div.innerHTML = '<div>'
-        + '<div class="name">' + escapeHtml(c.name) + '</div>'
-        + '<div class="meta">' + escapeHtml(c.id) + ' · ' + escapeHtml(c.category || '')
-        + ' · ' + escapeHtml(c.neighbourhood || '') + '</div>'
-        + '</div>'
-        + '<span class="badge badge-info">' + escapeHtml(c.status || '') + '</span>';
-
-      div.onclick = (function(cand) {
-        return function() { confirmMerchantFromDisambig(cand.id, cand.name); };
-      })(c);
-
-      container.appendChild(div);
-    }
-  } else {
-    container.innerHTML = '<p style="font-size:13px; color:var(--text-muted); padding:8px;">No automatic matches found. Search below.</p>';
+  var html = 'I found possible matches from your recording. Which merchant was this about?';
+  var candidates = result.merchantCandidates || [];
+  for (var i = 0; i < candidates.length; i++) {
+    html += '\n\n• **' + esc(candidates[i].name) + '** (' + esc(candidates[i].category || '') + ')';
   }
+  addMsg('assistant', formatText(html));
 
-  // Also render full merchant list for fallback search
-  renderMerchantList(state.allMerchants, 'disambigFullList');
-}
+  // Add clickable buttons for each candidate
+  var chatArea = document.getElementById('chatArea');
+  var btnWrap = document.createElement('div');
+  btnWrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;padding:0 4px;animation:fadeUp 0.25s ease-out;';
 
-function filterDisambigMerchants() {
-  var query = document.getElementById('disambigSearch').value.toLowerCase().trim();
-  var list = document.getElementById('disambigFullList');
+  for (var c = 0; c < candidates.length; c++) {
+    (function(cand) {
+      var btn = document.createElement('button');
+      btn.style.cssText = 'background:white;border:1.5px solid var(--border);border-radius:20px;padding:8px 14px;font-size:13px;font-family:inherit;cursor:pointer;transition:all 0.15s;';
+      btn.textContent = cand.name;
+      btn.onclick = function() {
+        btnWrap.remove();
+        addMsg('user', cand.name);
+        var proc2 = showProcessing('Analysing call for ' + cand.name + '...');
 
-  if (query.length > 0) {
-    list.style.display = 'block';
-    var filtered = state.allMerchants.filter(function(m) {
-      return m.name.toLowerCase().indexOf(query) > -1
-        || m.id.toLowerCase().indexOf(query) > -1;
-    });
-    // Re-render with click handlers that call confirmMerchantFromDisambig
-    list.innerHTML = '';
-    for (var i = 0; i < filtered.length; i++) {
-      var m = filtered[i];
-      var div = document.createElement('div');
-      div.className = 'merchant-item';
-      div.innerHTML = '<div>'
-        + '<div class="name">' + escapeHtml(m.name) + '</div>'
-        + '<div class="meta">' + escapeHtml(m.id) + ' · ' + escapeHtml(m.category || '') + '</div>'
-        + '</div>';
-      div.onclick = (function(merchant) {
-        return function() { confirmMerchantFromDisambig(merchant.id, merchant.name); };
-      })(m);
-      list.appendChild(div);
-    }
-  } else {
-    list.style.display = 'none';
+        callServer('completeAnalysis', {
+          merchantId: cand.id,
+          transcript: state.transcript,
+          userName: state.userName
+        }).then(function(r2) {
+          proc2.remove();
+          if (!r2.ok) { addMsg('system', '⚠️ ' + r2.error); return; }
+          r2.transcript = state.transcript;
+          handleAnalysisComplete(r2);
+        }).catch(function(err) {
+          proc2.remove();
+          addMsg('system', '⚠️ ' + err.message);
+        });
+      };
+      btnWrap.appendChild(btn);
+    })(candidates[c]);
   }
-}
-
-function confirmMerchantFromDisambig(merchantId, merchantName) {
-  showSection('step-processing');
-  updateProcessingText('Analysing call with ' + merchantName + '...');
-
-  callServer('completeAnalysis', {
-    merchantId: merchantId,
-    transcript: state.transcript
-  }).then(function(result) {
-    if (!result.ok) {
-      alert('Error: ' + result.error);
-      showSection('step-disambiguate');
-      return;
-    }
-
-    state.merchantRecord = result.merchantRecord;
-    state.interactionHistory = result.interactionHistory || [];
-    state.analysis = result.analysis;
-    showCoachingStep();
-  }).catch(function(err) {
-    alert('Error: ' + (err.message || err));
-    showSection('step-disambiguate');
-  });
+  chatArea.appendChild(btnWrap);
+  chatArea.scrollTop = chatArea.scrollHeight;
 }
 
 
 // ============================================================
-// STEP 3: COACHING
+// ANALYSIS COMPLETE → COACHING
 // ============================================================
 
-function showCoachingStep() {
-  showSection('step-coaching');
+function handleAnalysisComplete(result) {
+  state.transcript = result.transcript || state.transcript;
+  state.merchantRecord = result.merchantRecord;
+  state.interactionHistory = result.interactionHistory || [];
+  state.analysis = result.analysis;
 
-  // Populate merchant banner
-  document.getElementById('merchantBannerName').textContent =
-    state.merchantRecord.name + ' (' + state.merchantRecord.id + ')';
-  document.getElementById('merchantBannerMeta').textContent =
-    state.merchantRecord.category + ' · ' + state.merchantRecord.neighbourhood
-    + ' · ' + state.merchantRecord.status;
+  // Update header
+  document.getElementById('headerSubtext').textContent = state.merchantRecord.name + ' — ' + (state.userName || 'Debrief');
 
-  // Show transcript
-  document.getElementById('transcriptDisplay').textContent = state.transcript;
-
-  // Deal health card
-  var score = state.analysis.dealHealth.score;
-  var healthCard = document.getElementById('dealHealthCard');
-  healthCard.className = 'deal-health ' + (score >= 7 ? 'good' : score >= 4 ? 'moderate' : 'poor');
-  document.getElementById('dealScore').textContent = score;
-  document.getElementById('dealSummary').innerHTML =
-    '<strong>' + state.analysis.dealHealth.momentum + '</strong> — '
-    + escapeHtml(state.analysis.dealHealth.summary);
-
-  // Evaluate coaching need
-  var coachingNeed = { needsCoaching: false, weakPointCount: 0 };
-  if (state.analysis.weakPoints && state.analysis.weakPoints.length > 0) {
-    coachingNeed = { needsCoaching: true, weakPointCount: state.analysis.weakPoints.length };
+  // Show deal health card
+  if (state.analysis && state.analysis.dealHealth) {
+    showDealHealthCard(state.analysis.dealHealth);
   }
 
-  if (coachingNeed.needsCoaching) {
-    document.getElementById('coachingSection').style.display = 'block';
-    document.getElementById('noCoachingSection').style.display = 'none';
-    document.getElementById('proceedToApproval').style.display = 'none';
-    document.getElementById('weakPointsBadge').textContent =
-      coachingNeed.weakPointCount + ' area' + (coachingNeed.weakPointCount > 1 ? 's' : '') + ' to address';
+  // Check for coaching need
+  var weakPoints = (state.analysis && state.analysis.weakPoints) || [];
 
-    // Start coaching session
-    startCoachingUI();
+  if (weakPoints.length > 0) {
+    addMsg('system', weakPoints.length + ' area' + (weakPoints.length > 1 ? 's' : '') + ' to explore — starting debrief');
+    startCoaching();
   } else {
-    document.getElementById('coachingSection').style.display = 'none';
-    document.getElementById('noCoachingSection').style.display = 'block';
-    document.getElementById('proceedToApproval').style.display = 'flex';
-    state.coachingSummary = {
-      summary: 'No significant weak points detected.',
-      keyInsight: 'Deal progressing well.',
-      revisedNextAction: ''
-    };
+    state.coachingSummary = { summary: 'No significant blind spots detected.', keyInsight: 'Deal progressing well.', revisedNextAction: '', fieldIntelligence: [] };
+    addMsg('system', 'Analysis looks solid — no blind spots detected');
+    state.coachingComplete = true;
+    state.isProcessing = false;
+    showProceedBanner();
   }
 }
 
-function startCoachingUI() {
+function showDealHealthCard(dh) {
+  var chatArea = document.getElementById('chatArea');
+  var card = document.createElement('div');
+  card.className = 'deal-health-card';
+
+  var scoreClass = dh.score >= 7 ? 'good' : dh.score >= 4 ? 'moderate' : 'poor';
+  card.innerHTML = '<div class="deal-health-header">'
+    + '<div class="deal-score ' + scoreClass + '">' + dh.score + '</div>'
+    + '<div class="label"><strong>Deal Health</strong>' + (dh.momentum || '') + '</div>'
+    + '</div>'
+    + '<div class="deal-health-summary">' + esc(dh.summary || '') + '</div>';
+
+  chatArea.appendChild(card);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+
+// ============================================================
+// COACHING (MULTI-TURN CHAT)
+// ============================================================
+
+function startCoaching() {
+  state.phase = 'coaching';
   state.coachingHistory = [];
-  document.getElementById('coachingMessages').innerHTML = '';
+  state.isProcessing = true;
 
-  // Add a loading indicator
-  addCoachingMessage('coach', '...');
+  // Enable text input for coaching responses
+  document.getElementById('textInput').disabled = false;
+  document.getElementById('textInput').placeholder = 'Reply to the coach...';
+
+  var proc = showProcessing('Coach is reviewing...');
 
   callServer('startCoaching', {
     transcript: state.transcript,
@@ -1513,48 +1430,54 @@ function startCoachingUI() {
     analysis: state.analysis,
     userName: state.userName
   }).then(function(result) {
-    // Remove loading indicator
-    var msgs = document.getElementById('coachingMessages');
-    if (msgs.lastChild) msgs.removeChild(msgs.lastChild);
+    proc.remove();
+    state.isProcessing = false;
 
     if (!result.ok) {
-      addCoachingMessage('coach', 'Sorry, coaching could not start: ' + result.error);
-      document.getElementById('proceedToApproval').style.display = 'flex';
+      addMsg('system', '⚠️ Coaching error: ' + result.error);
+      state.coachingComplete = true;
+      showProceedBanner();
       return;
     }
 
-    // The initial user message was built by startCoachingSession
+    // Track the initial user message that startCoachingSession built
     state.coachingHistory.push({
       role: 'user',
       text: 'I just recorded a voice note about my call with ' + state.merchantRecord.name + '.'
     });
     state.coachingHistory.push({ role: 'assistant', text: result.text });
 
-    addCoachingMessage('coach', result.text);
+    addMsg('assistant', formatText(result.text));
 
     if (result.isComplete) {
-      onCoachingComplete(result.coachingSummary);
+      handleCoachingComplete(result.coachingSummary);
+    } else {
+      document.getElementById('textInput').focus();
     }
+    updateSendBtn();
   }).catch(function(err) {
-    var msgs = document.getElementById('coachingMessages');
-    if (msgs.lastChild) msgs.removeChild(msgs.lastChild);
-    addCoachingMessage('coach', 'Coaching unavailable: ' + (err.message || err));
-    document.getElementById('proceedToApproval').style.display = 'flex';
+    proc.remove();
+    state.isProcessing = false;
+    addMsg('system', '⚠️ ' + err.message);
+    state.coachingComplete = true;
+    showProceedBanner();
   });
 }
 
-function sendCoachingReply() {
-  var input = document.getElementById('coachingInput');
+function sendCoachingMessage() {
+  var input = document.getElementById('textInput');
   var text = input.value.trim();
-  if (!text) return;
+  if (!text || state.isProcessing) return;
 
-  addCoachingMessage('user', text);
-  state.coachingHistory.push({ role: 'user', text: text });
+  addMsg('user', text);
   input.value = '';
+  autoResize(input);
 
-  // Disable input while processing
-  document.getElementById('coachingSendBtn').disabled = true;
-  addCoachingMessage('coach', '...');
+  state.coachingHistory.push({ role: 'user', text: text });
+  state.isProcessing = true;
+  updateSendBtn();
+
+  var proc = showProcessing('Thinking...');
 
   callServer('coachingTurn', {
     coachingHistory: state.coachingHistory,
@@ -1564,299 +1487,359 @@ function sendCoachingReply() {
     analysis: state.analysis,
     userName: state.userName
   }).then(function(result) {
-    // Remove loading indicator
-    var msgs = document.getElementById('coachingMessages');
-    if (msgs.lastChild) msgs.removeChild(msgs.lastChild);
-    document.getElementById('coachingSendBtn').disabled = false;
+    proc.remove();
+    state.isProcessing = false;
 
     if (!result.ok) {
-      addCoachingMessage('coach', 'Error: ' + result.error);
+      addMsg('system', '⚠️ ' + result.error);
+      updateSendBtn();
       return;
     }
 
     state.coachingHistory.push({ role: 'assistant', text: result.text });
-    addCoachingMessage('coach', result.text);
+    addMsg('assistant', formatText(result.text));
 
     if (result.isComplete) {
-      onCoachingComplete(result.coachingSummary);
+      handleCoachingComplete(result.coachingSummary);
+    } else {
+      document.getElementById('textInput').focus();
     }
+    updateSendBtn();
   }).catch(function(err) {
-    var msgs = document.getElementById('coachingMessages');
-    if (msgs.lastChild) msgs.removeChild(msgs.lastChild);
-    document.getElementById('coachingSendBtn').disabled = false;
-    addCoachingMessage('coach', 'Error: ' + (err.message || err));
+    proc.remove();
+    state.isProcessing = false;
+    addMsg('system', '⚠️ ' + err.message);
+    updateSendBtn();
   });
 }
 
-function addCoachingMessage(role, text) {
-  var container = document.getElementById('coachingMessages');
-  var div = document.createElement('div');
-  div.className = 'coaching-msg ' + role;
+function handleCoachingComplete(summary) {
+  state.coachingSummary = summary || { summary: '', keyInsight: '', revisedNextAction: '', fieldIntelligence: [] };
+  state.coachingComplete = true;
+  state.phase = 'approval';
 
-  if (text === '...') {
-    div.innerHTML = '<div class="spinner" style="width:20px;height:20px;border-width:2px;margin:0;"></div>';
-  } else {
-    div.innerHTML = formatMarkdown(text);
-  }
+  // Disable text input
+  document.getElementById('textInput').disabled = true;
+  document.getElementById('textInput').placeholder = 'Debrief complete';
 
-  container.appendChild(div);
-  container.scrollTop = container.scrollHeight;
-}
-
-function onCoachingComplete(summary) {
-  state.coachingSummary = summary || { summary: 'Coaching completed.', keyInsight: '', revisedNextAction: '' };
-
-  // Hide coaching input, show proceed button
-  document.getElementById('coachingInputArea').style.display = 'none';
-  document.getElementById('proceedToApproval').style.display = 'flex';
-
-  // If coaching suggests a revised next action, inject it into proposed updates
+  // Inject revised next action if coaching produced one
   if (summary && summary.revisedNextAction && summary.revisedNextAction.length > 0) {
-    var hasNextAction = false;
-    for (var i = 0; i < state.analysis.proposedUpdates.length; i++) {
-      if (state.analysis.proposedUpdates[i].fieldName === 'nextAction') {
-        state.analysis.proposedUpdates[i].proposedValue = summary.revisedNextAction;
-        state.analysis.proposedUpdates[i].reasoning += ' (refined during coaching)';
-        hasNextAction = true;
+    var updates = state.analysis.proposedUpdates || [];
+    var found = false;
+    for (var i = 0; i < updates.length; i++) {
+      if (updates[i].fieldName === 'nextAction') {
+        updates[i].proposedValue = summary.revisedNextAction;
+        updates[i].reasoning += ' (refined during coaching)';
+        found = true;
         break;
       }
     }
-    if (!hasNextAction) {
-      state.analysis.proposedUpdates.push({
+    if (!found) {
+      updates.push({
         fieldName: 'nextAction',
-        currentValue: state.merchantRecord.nextAction || '(none)',
+        currentValue: (state.merchantRecord && state.merchantRecord.nextAction) || '(none)',
         proposedValue: summary.revisedNextAction,
         reasoning: 'Identified during coaching session'
       });
     }
+    state.analysis.proposedUpdates = updates;
   }
+
+  showProceedBanner();
+}
+
+function showProceedBanner() {
+  document.getElementById('proceedBanner').classList.add('visible');
 }
 
 
 // ============================================================
-// STEP 4: APPROVAL SCREEN
+// APPROVAL PAGE
 // ============================================================
 
-function showApprovalScreen() {
-  showSection('step-approval');
+function showApprovalPage() {
+  document.getElementById('chatPage').style.display = 'none';
+  document.getElementById('approvalPage').classList.add('active');
 
-  var container = document.getElementById('proposedUpdatesList');
+  document.getElementById('approvalMerchantName').textContent =
+    state.merchantRecord ? state.merchantRecord.name : 'Unknown';
+
+  renderUpdateCards();
+  renderObservations();
+}
+
+function backToChat() {
+  document.getElementById('approvalPage').classList.remove('active');
+  document.getElementById('chatPage').style.display = 'flex';
+}
+
+function renderUpdateCards() {
+  var container = document.getElementById('updateCards');
   container.innerHTML = '';
 
-  var updates = state.analysis.proposedUpdates || [];
-  state.approvedUpdates = [];
+  var updates = (state.analysis && state.analysis.proposedUpdates) || [];
 
   if (updates.length === 0) {
-    container.innerHTML = '<p style="font-size:13px; color:var(--text-muted); padding:16px; text-align:center;">'
-      + 'No field updates suggested. The interaction will still be logged.</p>';
+    container.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:14px;">'
+      + 'No field updates suggested. The interaction will still be logged.</div>';
+    return;
   }
 
   for (var i = 0; i < updates.length; i++) {
     var u = updates[i];
     var card = document.createElement('div');
     card.className = 'update-card';
-    card.innerHTML = '<div class="update-card-header">' + escapeHtml(u.fieldName) + '</div>'
+    card.id = 'card-' + i;
+
+    card.innerHTML =
+      '<div class="update-card-top">'
+      + '<span class="update-card-field">' + esc(fieldLabel(u.fieldName)) + '</span>'
+      + '<div class="toggle-wrap">'
+      + '<span>Include</span>'
+      + '<label class="toggle-switch">'
+      + '<input type="checkbox" checked id="toggle-' + i + '" data-idx="' + i + '" onchange="toggleCard(' + i + ')">'
+      + '<span class="toggle-slider"></span>'
+      + '</label>'
+      + '</div>'
+      + '</div>'
       + '<div class="update-card-body">'
-      + '  <div class="update-values">'
-      + '    <span class="update-current">' + escapeHtml(u.currentValue || '(empty)') + '</span>'
-      + '    <span class="update-arrow">→</span>'
-      + '    <input class="update-proposed-input" type="text" value="' + escapeHtml(u.proposedValue || '') + '" data-field="' + escapeHtml(u.fieldName) + '" data-index="' + i + '">'
-      + '  </div>'
-      + '  <div class="update-reasoning">' + escapeHtml(u.reasoning || '') + '</div>'
-      + '  <div class="update-toggle">'
-      + '    <input type="checkbox" id="toggle-' + i + '" checked data-index="' + i + '">'
-      + '    <label for="toggle-' + i + '" style="font-size:12px; color:var(--text-secondary);">Include this update</label>'
-      + '  </div>'
+      + '<div class="update-values">'
+      + '<div class="value-row"><span class="value-label">From</span><span class="value-current">' + esc(u.currentValue || '(empty)') + '</span></div>'
+      + '<div class="value-row"><span class="value-label">To</span>'
+      + (u.fieldName === 'notes'
+        ? '<textarea class="value-proposed-input" id="val-' + i + '" rows="3" style="min-height:70px;resize:vertical;">' + esc(u.proposedValue || '') + '</textarea>'
+        : '<input class="value-proposed-input" id="val-' + i + '" type="text" value="' + esc(u.proposedValue || '') + '">')
+      + '</div>'
+      + '</div>'
+      + '<div class="update-reasoning">' + esc(u.reasoning || '') + '</div>'
       + '</div>';
+
     container.appendChild(card);
   }
+}
 
-  // Show observations if any
-  var observations = state.analysis.observations || [];
-  if (observations.length > 0) {
-    document.getElementById('observationsList').style.display = 'block';
-    var obsContainer = document.getElementById('observationsContent');
-    obsContainer.innerHTML = '';
-    for (var o = 0; o < observations.length; o++) {
-      var obs = observations[o];
-      var obsCard = document.createElement('div');
-      obsCard.className = 'observation-card';
-      obsCard.innerHTML = '<div class="insight">' + escapeHtml(obs.insight || obs) + '</div>'
-        + (obs.suggestion ? '<div class="suggestion">' + escapeHtml(obs.suggestion) + '</div>' : '');
-      obsContainer.appendChild(obsCard);
-    }
+function toggleCard(idx) {
+  var cb = document.getElementById('toggle-' + idx);
+  var card = document.getElementById('card-' + idx);
+  if (cb.checked) {
+    card.classList.remove('excluded');
   } else {
-    document.getElementById('observationsList').style.display = 'none';
+    card.classList.add('excluded');
   }
+}
+
+function renderObservations() {
+  var observations = (state.analysis && state.analysis.observations) || [];
+  var section = document.getElementById('observationsSection');
+  var container = document.getElementById('observationCards');
+  container.innerHTML = '';
+
+  if (observations.length === 0) {
+    section.classList.add('hidden');
+    return;
+  }
+
+  section.classList.remove('hidden');
+  for (var i = 0; i < observations.length; i++) {
+    var o = observations[i];
+    var card = document.createElement('div');
+    card.className = 'observation-card';
+    card.innerHTML = '<div class="insight">💡 ' + esc(o.insight || '') + '</div>'
+      + (o.actionSuggestion ? '<div class="suggestion">' + esc(o.actionSuggestion) + '</div>' : '');
+    container.appendChild(card);
+  }
+}
+
+function fieldLabel(name) {
+  var map = {
+    status: 'Status', priority: 'Priority', nextAction: 'Next Action',
+    nextActionDate: 'Next Action Date', notes: 'Notes',
+    contactName: 'Contact Name', phone: 'Phone', email: 'Email'
+  };
+  return map[name] || name;
 }
 
 
 // ============================================================
-// COMMIT UPDATES
+// COMMIT
 // ============================================================
 
 function commitUpdates() {
-  var updates = state.analysis.proposedUpdates || [];
+  var updates = (state.analysis && state.analysis.proposedUpdates) || [];
   var approved = [];
 
   for (var i = 0; i < updates.length; i++) {
-    var checkbox = document.getElementById('toggle-' + i);
-    if (checkbox && checkbox.checked) {
-      var valueInput = document.querySelector('.update-proposed-input[data-index="' + i + '"]');
+    var cb = document.getElementById('toggle-' + i);
+    if (cb && cb.checked) {
+      var valEl = document.getElementById('val-' + i);
       approved.push({
         fieldName: updates[i].fieldName,
-        proposedValue: valueInput ? valueInput.value : updates[i].proposedValue
+        proposedValue: valEl ? valEl.value : updates[i].proposedValue
       });
     }
   }
 
   document.getElementById('commitBtn').disabled = true;
-  showSection('step-processing');
-  updateProcessingText('Committing updates to Pipeline...');
+  document.getElementById('commitBtn').textContent = 'Committing...';
 
   callServer('commitUpdates', {
     merchantId: state.merchantRecord.id,
     merchantName: state.merchantRecord.name,
     userName: state.userName,
     transcript: state.transcript,
-    coachingSummary: state.coachingSummary ? state.coachingSummary.summary : '',
+    coachingSummary: state.coachingSummary || null,
+    analysis: state.analysis || null,
     approvedUpdates: approved
   }).then(function(result) {
     if (!result.ok) {
-      alert('Error: ' + result.error);
-      showSection('step-approval');
+      alert('Error: ' + (result.error || 'Commit failed'));
       document.getElementById('commitBtn').disabled = false;
+      document.getElementById('commitBtn').textContent = '✓ Commit';
       return;
     }
 
-    // Show confirmation
-    showSection('step-done');
-    document.getElementById('doneMessage').textContent =
-      state.merchantRecord.name + ' — ' + (result.updatedFields || []).length + ' fields updated';
-    document.getElementById('doneDetails').textContent =
-      'Interaction logged to CRM. '
-      + (state.coachingSummary ? state.coachingSummary.summary : '');
+    showDonePage(result);
   }).catch(function(err) {
-    alert('Error: ' + (err.message || err));
-    showSection('step-approval');
+    alert('Connection error: ' + err.message);
     document.getElementById('commitBtn').disabled = false;
+    document.getElementById('commitBtn').textContent = '✓ Commit';
   });
 }
 
 
 // ============================================================
-// RESET
+// DONE PAGE
 // ============================================================
+
+function showDonePage(result) {
+  document.getElementById('approvalPage').classList.remove('active');
+  document.getElementById('donePage').classList.add('active');
+
+  var fieldsCount = (result.updatedFields || []).length;
+  document.getElementById('doneMessage').textContent =
+    state.merchantRecord.name + ' — ' + fieldsCount + ' field' + (fieldsCount !== 1 ? 's' : '') + ' updated. Interaction logged to CRM.';
+
+  var fiNote = '';
+  if (result.fieldIntelligence && result.fieldIntelligence.insightsWritten > 0) {
+    fiNote = '🧠 ' + result.fieldIntelligence.insightsWritten + ' market insight' +
+      (result.fieldIntelligence.insightsWritten > 1 ? 's' : '') + ' captured';
+  }
+  document.getElementById('doneFieldIntel').textContent = fiNote;
+}
+
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+
+function goBack() {
+  window.location.href = './index.html';
+}
 
 function resetFlow() {
-  state.selectedMerchantId = null;
-  state.selectedMerchantName = null;
-  state.audioBase64 = null;
-  state.audioMimeType = null;
-  state.audioFileName = null;
-  state.transcript = '';
-  state.merchantRecord = null;
-  state.interactionHistory = [];
-  state.analysis = null;
-  state.coachingHistory = [];
-  state.coachingSummary = null;
-  state.approvedUpdates = [];
+  // Full page reload for clean state
+  window.location.reload();
+}
 
-  document.getElementById('merchantSearch').value = '';
-  document.getElementById('submitRecordingBtn').disabled = true;
-  document.getElementById('coachingInputArea').style.display = 'flex';
-  document.getElementById('audioFileInput').value = '';
-  document.getElementById('audioPreview').classList.remove('visible');
-  document.getElementById('uploadLabel').textContent = 'Upload voice note';
-  document.getElementById('uploadSublabel').textContent = 'Select a recording from your files';
 
-  // Reset native record button
-  var btn = document.getElementById('nativeRecordBtn');
-  if (btn) {
-    btn.classList.remove('recording');
-    document.getElementById('nativeRecordLabel').textContent = 'Tap to Record';
-    document.getElementById('recTimer').style.display = 'none';
-    clearInterval(recordingTimerInterval);
+// ============================================================
+// UI HELPERS
+// ============================================================
+
+function addMsg(role, content) {
+  var chatArea = document.getElementById('chatArea');
+  var div = document.createElement('div');
+  div.className = 'message ' + role;
+
+  if (role !== 'system') {
+    var label = document.createElement('div');
+    label.className = 'message-label';
+    label.textContent = role === 'user' ? (state.userName || 'You') : 'Coach';
+    div.appendChild(label);
   }
 
-  renderMerchantList(state.allMerchants, 'merchantList');
-  showSection('step-select');
+  var bubble = document.createElement('div');
+  bubble.className = 'message-bubble';
+  if (role === 'assistant') {
+    bubble.innerHTML = content;
+  } else {
+    bubble.textContent = content;
+  }
+  div.appendChild(bubble);
+  chatArea.appendChild(div);
+  chatArea.scrollTop = chatArea.scrollHeight;
 }
 
-
-// ============================================================
-// UTILITIES
-// ============================================================
-
-function escapeHtml(str) {
-  if (!str) return '';
-  var div = document.createElement('div');
-  div.textContent = String(str);
-  return div.innerHTML;
+function showProcessing(text) {
+  var chatArea = document.getElementById('chatArea');
+  var el = document.createElement('div');
+  el.className = 'processing';
+  el.innerHTML = '<div class="processing-dots"><span></span><span></span><span></span></div> ' + esc(text || 'Processing...');
+  chatArea.appendChild(el);
+  chatArea.scrollTop = chatArea.scrollHeight;
+  return el;
 }
 
-function formatMarkdown(text) {
+function formatText(text) {
   if (!text) return '';
-  var html = escapeHtml(text);
-  // Bold
-  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-  // Italic
-  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
-  // Line breaks
-  html = html.replace(/\n/g, '<br>');
-  return html;
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n/g, '<br>');
 }
-// ══════════════════════════════════════════
+
+function esc(str) {
+  var d = document.createElement('div');
+  d.textContent = str || '';
+  return d.innerHTML;
+}
+
+
+// ============================================================
 // SERVICE WORKER + VERSION CHECK
-// ══════════════════════════════════════════
+// ============================================================
+
 var APP_VERSION = '2.0.0';
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw_customer_ai.js', { updateViaCache: 'none' })
-    .then(function(registration) {
-      setInterval(function() { registration.update(); }, 60000);
-
-      registration.addEventListener('updatefound', function() {
-        var newWorker = registration.installing;
-        if (newWorker) {
-          newWorker.addEventListener('statechange', function() {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              showUpdateBanner();
-            }
+    .then(function(reg) {
+      setInterval(function() { reg.update(); }, 60000);
+      reg.addEventListener('updatefound', function() {
+        var nw = reg.installing;
+        if (nw) {
+          nw.addEventListener('statechange', function() {
+            if (nw.state === 'installed' && navigator.serviceWorker.controller) showUpdateBanner();
           });
         }
       });
     })
-    .catch(function(err) {
-      console.log('SW registration skipped:', err.message);
-    });
+    .catch(function() {});
 
-  navigator.serviceWorker.addEventListener('controllerchange', function() {
-    window.location.reload();
-  });
+  navigator.serviceWorker.addEventListener('controllerchange', function() { window.location.reload(); });
 }
 
 function checkVersion() {
-  fetch('version.json?_=' + Date.now())
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      if (data.version && data.version !== APP_VERSION) {
-        console.log('New version available: ' + data.version + ' (running ' + APP_VERSION + ')');
+  fetch('version.json?_=' + Date.now()).then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.version && d.version !== APP_VERSION) {
         if (navigator.serviceWorker && navigator.serviceWorker.controller) {
           navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
         }
         showUpdateBanner();
       }
-    })
-    .catch(function() {});
+    }).catch(function() {});
 }
 
 function showUpdateBanner() {
   if (document.getElementById('updateBanner')) return;
   var b = document.createElement('div');
   b.id = 'updateBanner';
-  b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#1a1a2e;color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;font-family:Outfit,sans-serif;font-size:14px;';
-  b.innerHTML = '<span>A new version is available</span><button onclick="window.location.reload()" style="background:#fff;color:#1a1a2e;border:none;padding:6px 16px;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px;">Refresh</button>';
+  b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#1a1a2e;color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;font-size:14px;font-family:inherit;';
+  b.innerHTML = '<span>New version available</span><button onclick="window.location.reload()" style="background:#fff;color:#1a1a2e;border:none;padding:6px 16px;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px;">Refresh</button>';
   document.body.prepend(b);
 }
 
