@@ -1464,60 +1464,53 @@ function startCoaching() {
   });
 }
 
-sendCoachingMessage() and replace it with:
-javascriptfunction sendCoachingMessage() {
+function sendCoachingMessage() {
   var input = document.getElementById('textInput');
   var text = input.value.trim();
   var hasAudio = !!state.audioBase64;
 
   if ((!text && !hasAudio) || state.isProcessing) return;
 
-  // If audio, we need to transcribe first then send as text
-  if (hasAudio) {
+  if (hasAudio && !text) {
+    // Voice reply during coaching: send to trainer-style transcription
     addMsg('user', '🎙️ Voice reply');
     var audioB64 = state.audioBase64;
     var audioMime = state.audioMimeType;
     removeAudio();
-    input.value = '';
-    autoResize(input);
     state.isProcessing = true;
     updateSendBtn();
 
-    var proc = showProcessing('Transcribing your reply...');
+    var proc = showProcessing('Transcribing...');
 
-    callServer('processVoiceNote', {
+    callServer('trainer', {
       audioBase64: audioB64,
       audioMimeType: audioMime,
-      merchantId: state.merchantRecord.id,
+      textInput: null,
+      conversationHistory: [],
       userName: state.userName,
-      transcribeOnly: true
+      mode: 'transcribeOnly'
     }).then(function(result) {
       proc.remove();
-      if (!result.ok || !result.transcript) {
-        // Fallback: treat as a simple "continue" if transcription fails
+      if (result.ok && result.question) {
+        // Update user bubble with transcription
+        var userBubbles = document.querySelectorAll('.message.user');
+        var last = userBubbles[userBubbles.length - 1];
+        if (last) {
+          var bubble = last.querySelector('.message-bubble');
+          if (bubble) bubble.textContent = result.question;
+        }
+        sendCoachingText_(result.question);
+      } else {
         state.isProcessing = false;
-        addMsg('system', '⚠️ Could not transcribe. Type your reply instead.');
+        addMsg('system', '⚠️ Could not transcribe — please type your reply instead.');
         updateSendBtn();
-        return;
       }
-
-      // Update the user bubble with actual transcription
-      var userBubbles = document.querySelectorAll('.message.user');
-      var lastBubble = userBubbles[userBubbles.length - 1];
-      if (lastBubble) {
-        var bubble = lastBubble.querySelector('.message-bubble');
-        if (bubble) bubble.textContent = result.transcript;
-      }
-
-      // Now send the transcribed text as a coaching turn
-      sendCoachingText_(result.transcript);
-    }).catch(function(err) {
+    }).catch(function() {
       proc.remove();
       state.isProcessing = false;
-      addMsg('system', '⚠️ Transcription error. Type your reply instead.');
+      addMsg('system', '⚠️ Transcription failed — please type your reply.');
       updateSendBtn();
     });
-
     return;
   }
 
