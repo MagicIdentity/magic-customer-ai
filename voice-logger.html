@@ -1241,7 +1241,7 @@ function updateSendBtn() {
   var canSend = false;
 
   if (state.phase === 'record') canSend = hasAudio;
-  else if (state.phase === 'coaching') canSend = hasText;
+  else if (state.phase === 'coaching') canSend = hasText || hasAudio;
 
   document.getElementById('sendBtn').disabled = !canSend || state.isProcessing;
 }
@@ -1464,15 +1464,71 @@ function startCoaching() {
   });
 }
 
-function sendCoachingMessage() {
+sendCoachingMessage() and replace it with:
+javascriptfunction sendCoachingMessage() {
   var input = document.getElementById('textInput');
   var text = input.value.trim();
-  if (!text || state.isProcessing) return;
+  var hasAudio = !!state.audioBase64;
 
+  if ((!text && !hasAudio) || state.isProcessing) return;
+
+  // If audio, we need to transcribe first then send as text
+  if (hasAudio) {
+    addMsg('user', '🎙️ Voice reply');
+    var audioB64 = state.audioBase64;
+    var audioMime = state.audioMimeType;
+    removeAudio();
+    input.value = '';
+    autoResize(input);
+    state.isProcessing = true;
+    updateSendBtn();
+
+    var proc = showProcessing('Transcribing your reply...');
+
+    callServer('processVoiceNote', {
+      audioBase64: audioB64,
+      audioMimeType: audioMime,
+      merchantId: state.merchantRecord.id,
+      userName: state.userName,
+      transcribeOnly: true
+    }).then(function(result) {
+      proc.remove();
+      if (!result.ok || !result.transcript) {
+        // Fallback: treat as a simple "continue" if transcription fails
+        state.isProcessing = false;
+        addMsg('system', '⚠️ Could not transcribe. Type your reply instead.');
+        updateSendBtn();
+        return;
+      }
+
+      // Update the user bubble with actual transcription
+      var userBubbles = document.querySelectorAll('.message.user');
+      var lastBubble = userBubbles[userBubbles.length - 1];
+      if (lastBubble) {
+        var bubble = lastBubble.querySelector('.message-bubble');
+        if (bubble) bubble.textContent = result.transcript;
+      }
+
+      // Now send the transcribed text as a coaching turn
+      sendCoachingText_(result.transcript);
+    }).catch(function(err) {
+      proc.remove();
+      state.isProcessing = false;
+      addMsg('system', '⚠️ Transcription error. Type your reply instead.');
+      updateSendBtn();
+    });
+
+    return;
+  }
+
+  // Text path
   addMsg('user', text);
   input.value = '';
   autoResize(input);
+  sendCoachingText_(text);
+}
 
+function sendCoachingText_(text) {
   state.coachingHistory.push({ role: 'user', text: text });
   state.isProcessing = true;
   updateSendBtn();
