@@ -6,8 +6,22 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Magic — Call Debrief</title>
+
+  <!-- WebDaemon — identity only -->
+  <link rel="webdaemon" href="agent.yml">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Import map for WebDaemon BrowserApp -->
+  <script type='importmap'>
+    {
+      "imports": {
+        "$static/": "https://webdaemon.online/dev/static/"
+      }
+    }
+  </script>
+
   <style>
     :root {
       --purple-deep: #4A1A8A;
@@ -45,863 +59,244 @@
 
     .hidden { display: none !important; }
 
-    /* ══════════════════════════════════════════
-       PAGE 1: CHAT / DEBRIEF INTERFACE
-    ══════════════════════════════════════════ */
-
-    #chatPage {
-      display: flex;
+    /* ── Gate Screen ── */
+    .gate-screen {
+      display: none;
       flex-direction: column;
+      align-items: center;
+      justify-content: center;
       min-height: 100dvh;
+      padding: 24px;
+      text-align: center;
+    }
+    .gate-screen.visible { display: flex; }
+    .gate-screen .gate-icon { font-size: 48px; margin-bottom: 20px; }
+    .gate-screen h2 { font-size: 22px; font-weight: 700; color: var(--purple-deep); margin-bottom: 8px; }
+    .gate-screen p { font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 24px; max-width: 320px; }
+    .gate-screen a {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--purple-deep); color: white;
+      padding: 12px 24px; border-radius: 9999px;
+      text-decoration: none; font-weight: 600; font-size: 14px;
     }
 
-    /* ── Header ── */
+    /* ── Page 1: Chat ── */
+    #chatPage { display: flex; flex-direction: column; min-height: 100dvh; }
+
     .header {
-      background: var(--purple-deep);
-      color: white;
-      padding: 14px 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      background: var(--purple-deep); color: white;
+      padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+      position: sticky; top: 0; z-index: 100;
     }
-
     .header-back {
-      background: rgba(255,255,255,0.12);
-      border: none;
-      border-radius: 8px;
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-      flex-shrink: 0;
+      background: rgba(255,255,255,0.12); border: none; border-radius: 8px;
+      width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 16px; cursor: pointer; flex-shrink: 0; text-decoration: none;
     }
-
+    .header-back:hover { background: rgba(255,255,255,0.2); }
     .header-icon {
-      width: 34px;
-      height: 34px;
-      background: rgba(255,255,255,0.15);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 17px;
-      flex-shrink: 0;
+      width: 34px; height: 34px; background: rgba(255,255,255,0.15); border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0;
     }
+    .header-text h1 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+    .header-text p { font-size: 11px; opacity: 0.65; margin-top: 1px; }
 
-    .header-text h1 {
-      font-size: 16px;
-      font-weight: 600;
-      letter-spacing: -0.01em;
-    }
-
-    .header-text p {
-      font-size: 11px;
-      opacity: 0.65;
-      margin-top: 1px;
-    }
-
-    /* ── Merchant Selector Bar ── */
     .merchant-bar {
-      background: white;
-      border-bottom: 1px solid var(--border);
-      padding: 10px 16px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      position: sticky;
-      top: 60px;
-      z-index: 90;
+      background: white; border-bottom: 1px solid var(--border); padding: 10px 16px;
+      display: flex; align-items: center; gap: 10px; position: sticky; top: 60px; z-index: 90;
     }
-
-    .merchant-bar label {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      white-space: nowrap;
-    }
-
+    .merchant-bar label { font-size: 12px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; }
     .merchant-select {
-      flex: 1;
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      padding: 8px 12px;
-      font-size: 14px;
-      font-family: inherit;
-      color: var(--text-primary);
-      background: var(--surface);
-      outline: none;
-      -webkit-appearance: none;
-      appearance: none;
+      flex: 1; border: 1.5px solid var(--border); border-radius: 10px; padding: 8px 12px;
+      font-size: 14px; font-family: inherit; color: var(--text-primary); background: var(--surface);
+      outline: none; -webkit-appearance: none; appearance: none;
       background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239CA3AF' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 12px center;
-      padding-right: 32px;
+      background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
     }
-
     .merchant-select:focus { border-color: var(--purple-mid); }
 
-    /* ── Chat Area ── */
     .chat-area {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px 16px 120px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
+      flex: 1; overflow-y: auto; padding: 16px 16px 120px;
+      display: flex; flex-direction: column; gap: 14px;
     }
 
-    /* Welcome / empty state */
     .welcome {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 32px 20px;
-      flex: 1;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 32px 20px; flex: 1;
     }
-
     .welcome-icon {
-      width: 60px;
-      height: 60px;
-      background: var(--purple-light);
-      border-radius: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      margin-bottom: 16px;
+      width: 60px; height: 60px; background: var(--purple-light); border-radius: 18px;
+      display: flex; align-items: center; justify-content: center; font-size: 28px; margin-bottom: 16px;
     }
-
-    .welcome h2 {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--purple-deep);
-      margin-bottom: 8px;
-    }
-
-    .welcome p {
-      font-size: 13.5px;
-      color: var(--text-secondary);
-      line-height: 1.5;
-      max-width: 300px;
-    }
-
+    .welcome h2 { font-size: 20px; font-weight: 700; color: var(--purple-deep); margin-bottom: 8px; }
+    .welcome p { font-size: 13.5px; color: var(--text-secondary); line-height: 1.5; max-width: 300px; }
     .welcome .hint {
-      margin-top: 20px;
-      background: var(--honey-light);
-      border-radius: 12px;
-      padding: 12px 16px;
-      font-size: 12.5px;
-      color: var(--text-primary);
-      line-height: 1.45;
-      max-width: 320px;
+      margin-top: 20px; background: var(--honey-light); border-radius: 12px;
+      padding: 12px 16px; font-size: 12.5px; color: var(--text-primary); line-height: 1.45; max-width: 320px;
     }
-
     .welcome .hint strong { color: var(--honey); }
 
-    /* Message bubbles */
-    .message {
-      max-width: 88%;
-      animation: fadeUp 0.25s ease-out;
-    }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
+    .message { max-width: 88%; animation: fadeUp 0.25s ease-out; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     .message.user { align-self: flex-end; }
     .message.assistant { align-self: flex-start; }
-
-    .message-label {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-bottom: 3px;
-      padding: 0 4px;
-      font-weight: 500;
-    }
-
+    .message-label { font-size: 11px; color: var(--text-muted); margin-bottom: 3px; padding: 0 4px; font-weight: 500; }
     .message.user .message-label { text-align: right; }
-
     .message-bubble {
-      padding: 12px 15px;
-      border-radius: var(--radius);
-      font-size: 14.5px;
-      line-height: 1.55;
-      white-space: pre-wrap;
-      word-wrap: break-word;
+      padding: 12px 15px; border-radius: var(--radius); font-size: 14.5px;
+      line-height: 1.55; white-space: pre-wrap; word-wrap: break-word;
     }
-
-    .message.user .message-bubble {
-      background: var(--purple-deep);
-      color: white;
-      border-bottom-right-radius: 4px;
-    }
-
+    .message.user .message-bubble { background: var(--purple-deep); color: white; border-bottom-right-radius: 4px; }
     .message.assistant .message-bubble {
-      background: var(--surface-card);
-      color: var(--text-primary);
-      border: 1px solid var(--border);
-      border-bottom-left-radius: 4px;
-      box-shadow: var(--shadow-sm);
+      background: var(--surface-card); color: var(--text-primary);
+      border: 1px solid var(--border); border-bottom-left-radius: 4px; box-shadow: var(--shadow-sm);
     }
-
-    .message.assistant .message-bubble strong {
-      color: var(--purple-deep);
-      font-weight: 600;
-    }
-
-    .voice-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 11px;
-      color: var(--honey);
-      margin-bottom: 4px;
-    }
-
-    /* System messages (analysis status, etc.) */
-    .message.system {
-      align-self: center;
-      max-width: 90%;
-    }
-
+    .message.assistant .message-bubble strong { color: var(--purple-deep); font-weight: 600; }
+    .voice-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--honey); margin-bottom: 4px; }
+    .message.system { align-self: center; max-width: 90%; }
     .message.system .message-bubble {
-      background: var(--purple-light);
-      color: var(--purple-deep);
-      border: none;
-      border-radius: 12px;
-      font-size: 13px;
-      text-align: center;
-      padding: 10px 16px;
+      background: var(--purple-light); color: var(--purple-deep); border: none;
+      border-radius: 12px; font-size: 13px; text-align: center; padding: 10px 16px;
     }
 
-    /* Deal health card in chat */
     .deal-health-card {
-      background: var(--surface-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 14px 16px;
-      box-shadow: var(--shadow-sm);
-      max-width: 88%;
-      align-self: flex-start;
-      animation: fadeUp 0.25s ease-out;
+      background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px 16px; box-shadow: var(--shadow-sm); max-width: 88%;
+      align-self: flex-start; animation: fadeUp 0.25s ease-out;
     }
-
-    .deal-health-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
+    .deal-health-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
     .deal-score {
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      font-weight: 700;
-      color: white;
-      flex-shrink: 0;
+      width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center;
+      justify-content: center; font-size: 18px; font-weight: 700; color: white; flex-shrink: 0;
     }
-
     .deal-score.good { background: var(--success); }
     .deal-score.moderate { background: var(--honey); }
     .deal-score.poor { background: var(--error); }
+    .deal-health-header .label { font-size: 13px; color: var(--text-secondary); }
+    .deal-health-header .label strong { display: block; font-size: 14px; color: var(--text-primary); }
+    .deal-health-summary { font-size: 13px; line-height: 1.5; color: var(--text-secondary); }
 
-    .deal-health-header .label {
-      font-size: 13px;
-      color: var(--text-secondary);
-    }
-
-    .deal-health-header .label strong {
-      display: block;
-      font-size: 14px;
-      color: var(--text-primary);
-    }
-
-    .deal-health-summary {
-      font-size: 13px;
-      line-height: 1.5;
-      color: var(--text-secondary);
-    }
-
-    /* Processing indicator */
     .processing {
-      align-self: flex-start;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 16px;
-      background: var(--surface-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      font-size: 13.5px;
-      color: var(--text-secondary);
-      box-shadow: var(--shadow-sm);
-      animation: fadeUp 0.25s ease-out;
+      align-self: flex-start; display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px; background: var(--surface-card); border: 1px solid var(--border);
+      border-radius: var(--radius); font-size: 13.5px; color: var(--text-secondary);
+      box-shadow: var(--shadow-sm); animation: fadeUp 0.25s ease-out;
     }
-
-    .processing-dots {
-      display: flex;
-      gap: 4px;
-    }
-
+    .processing-dots { display: flex; gap: 4px; }
     .processing-dots span {
-      width: 5px;
-      height: 5px;
-      background: var(--purple-mid);
-      border-radius: 50%;
+      width: 5px; height: 5px; background: var(--purple-mid); border-radius: 50%;
       animation: dotPulse 1.2s ease-in-out infinite;
     }
-
     .processing-dots span:nth-child(2) { animation-delay: 0.2s; }
     .processing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dotPulse { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1); } }
 
-    @keyframes dotPulse {
-      0%, 100% { opacity: 0.3; transform: scale(0.8); }
-      50% { opacity: 1; transform: scale(1); }
-    }
-
-    /* ── Input Area ── */
     .input-area {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: white;
-      border-top: 1px solid var(--border);
-      padding: 10px 16px;
-      padding-bottom: max(10px, env(safe-area-inset-bottom));
-      z-index: 100;
+      position: fixed; bottom: 0; left: 0; right: 0; background: white;
+      border-top: 1px solid var(--border); padding: 10px 16px;
+      padding-bottom: max(10px, env(safe-area-inset-bottom)); z-index: 100;
     }
-
-    /* Audio preview bar */
     .audio-preview {
-      display: none;
-      background: var(--honey-light);
-      border-radius: 10px;
-      padding: 8px 12px;
-      margin-bottom: 8px;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      color: var(--text-primary);
+      display: none; background: var(--honey-light); border-radius: 10px;
+      padding: 8px 12px; margin-bottom: 8px; align-items: center; gap: 8px;
+      font-size: 13px; color: var(--text-primary);
     }
-
     .audio-preview.visible { display: flex; }
     .audio-preview .filename { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .audio-preview .remove-btn {
-      background: none; border: none; font-size: 16px;
-      cursor: pointer; color: var(--text-muted); padding: 0 2px;
-    }
-
-    .input-row {
-      display: flex;
-      align-items: flex-end;
-      gap: 8px;
-    }
-
+    .audio-preview .remove-btn { background: none; border: none; font-size: 16px; cursor: pointer; color: var(--text-muted); padding: 0 2px; }
+    .input-row { display: flex; align-items: flex-end; gap: 8px; }
     .text-input-wrap { flex: 1; }
-
     .text-input {
-      width: 100%;
-      border: 1.5px solid var(--border);
-      border-radius: 22px;
-      padding: 10px 14px;
-      font-size: 15px;
-      font-family: inherit;
-      color: var(--text-primary);
-      background: var(--surface);
-      outline: none;
-      resize: none;
-      min-height: 42px;
-      max-height: 110px;
-      line-height: 1.4;
-      transition: border-color 0.15s;
+      width: 100%; border: 1.5px solid var(--border); border-radius: 22px; padding: 10px 14px;
+      font-size: 15px; font-family: inherit; color: var(--text-primary); background: var(--surface);
+      outline: none; resize: none; min-height: 42px; max-height: 110px; line-height: 1.4; transition: border-color 0.15s;
     }
-
     .text-input:focus { border-color: var(--purple-mid); background: white; }
     .text-input::placeholder { color: var(--text-muted); }
     .text-input:disabled { opacity: 0.5; }
-
     .btn-icon {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 18px;
-      transition: all 0.15s;
-      flex-shrink: 0;
+      width: 42px; height: 42px; border-radius: 50%; border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 18px; transition: all 0.15s; flex-shrink: 0;
     }
-
-    .btn-voice {
-      background: var(--honey-light);
-      color: var(--honey);
-      border: 1.5px solid rgba(232, 163, 23, 0.3);
-    }
-
+    .btn-voice { background: var(--honey-light); color: var(--honey); border: 1.5px solid rgba(232, 163, 23, 0.3); }
     .btn-voice:hover { background: var(--honey); color: white; }
-    .btn-voice.recording {
-      background: var(--error);
-      color: white;
-      border-color: var(--error);
-      animation: pulse 1.5s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3); }
-      50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
-    }
-
-    .btn-upload {
-      background: var(--surface);
-      color: var(--text-secondary);
-      border: 1.5px solid var(--border);
-    }
-
+    .btn-voice.recording { background: var(--error); color: white; border-color: var(--error); animation: pulse 1.5s ease-in-out infinite; }
+    @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3); } 50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); } }
+    .btn-upload { background: var(--surface); color: var(--text-secondary); border: 1.5px solid var(--border); }
     .btn-upload:hover { border-color: var(--purple-mid); color: var(--purple-mid); }
-
-    .btn-send {
-      background: var(--purple-deep);
-      color: white;
-    }
-
+    .btn-send { background: var(--purple-deep); color: white; }
     .btn-send:hover { background: var(--purple-mid); }
     .btn-send:disabled { background: var(--border); color: var(--text-muted); cursor: default; }
-
-    .rec-timer {
-      display: none;
-      font-size: 11px;
-      color: var(--error);
-      font-weight: 600;
-      font-variant-numeric: tabular-nums;
-    }
-
+    .rec-timer { display: none; font-size: 11px; color: var(--error); font-weight: 600; font-variant-numeric: tabular-nums; }
     .rec-timer.active { display: inline; }
 
-    /* Proceed banner */
     .proceed-banner {
-      display: none;
-      background: var(--success-light);
-      border: 1.5px solid var(--success);
-      border-radius: 12px;
-      padding: 12px 16px;
-      margin: 8px 16px;
-      position: fixed;
-      bottom: 70px;
-      left: 0;
-      right: 0;
-      z-index: 99;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
+      display: none; background: var(--success-light); border: 1.5px solid var(--success);
+      border-radius: 12px; padding: 12px 16px; margin: 8px 16px;
+      position: fixed; bottom: 70px; left: 0; right: 0; z-index: 99;
+      max-width: 600px; margin-left: auto; margin-right: auto;
     }
-
     .proceed-banner.visible { display: block; }
-
     .proceed-btn {
-      width: 100%;
-      background: var(--purple-deep);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      padding: 14px;
-      font-size: 15px;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      transition: background 0.15s;
+      width: 100%; background: var(--purple-deep); color: white; border: none;
+      border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 600;
+      font-family: inherit; cursor: pointer; transition: background 0.15s;
     }
-
     .proceed-btn:hover { background: var(--purple-mid); }
+    .proceed-subtitle { text-align: center; font-size: 12px; color: var(--success); margin-bottom: 8px; font-weight: 500; }
 
-    .proceed-subtitle {
-      text-align: center;
-      font-size: 12px;
-      color: var(--success);
-      margin-bottom: 8px;
-      font-weight: 500;
-    }
-
-
-    /* ══════════════════════════════════════════
-       PAGE 2: APPROVAL / COMMIT
-    ══════════════════════════════════════════ */
-
-    #approvalPage {
-      display: none;
-      min-height: 100dvh;
-      background: var(--surface);
-      flex-direction: column;
-    }
-
+    /* ── Page 2: Approval ── */
+    #approvalPage { display: none; min-height: 100dvh; background: var(--surface); flex-direction: column; }
     #approvalPage.active { display: flex; }
-
-    .approval-header {
-      background: var(--purple-deep);
-      color: white;
-      padding: 16px 16px 20px;
-      text-align: center;
-    }
-
-    .approval-header h1 {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-
-    .approval-header p {
-      font-size: 13px;
-      opacity: 0.7;
-    }
-
-    .approval-header .merchant-name {
-      display: inline-block;
-      background: rgba(255,255,255,0.15);
-      border-radius: 8px;
-      padding: 4px 12px;
-      font-size: 14px;
-      font-weight: 600;
-      margin-top: 8px;
-    }
-
-    .approval-body {
-      flex: 1;
-      padding: 16px;
-      padding-bottom: 100px;
-      overflow-y: auto;
-    }
-
-    .approval-section-label {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 10px;
-      padding: 0 2px;
-    }
-
-    /* Update cards — large, readable on mobile */
-    .update-card {
-      background: white;
-      border-radius: var(--radius);
-      border: 1.5px solid var(--border);
-      margin-bottom: 14px;
-      overflow: hidden;
-      box-shadow: var(--shadow-sm);
-      transition: border-color 0.15s;
-    }
-
-    .update-card.excluded {
-      opacity: 0.45;
-      border-color: var(--border);
-    }
-
-    .update-card-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 16px;
-      background: var(--purple-light);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .update-card-field {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--purple-deep);
-    }
-
-    /* Toggle switch */
-    .toggle-wrap {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .toggle-wrap span {
-      font-size: 11px;
-      color: var(--text-muted);
-      font-weight: 500;
-    }
-
-    .toggle-switch {
-      position: relative;
-      width: 44px;
-      height: 24px;
-    }
-
-    .toggle-switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .toggle-slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: var(--border);
-      border-radius: 24px;
-      transition: background 0.2s;
-    }
-
-    .toggle-slider:before {
-      content: '';
-      position: absolute;
-      width: 18px;
-      height: 18px;
-      left: 3px;
-      bottom: 3px;
-      background: white;
-      border-radius: 50%;
-      transition: transform 0.2s;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-    }
-
-    .toggle-switch input:checked + .toggle-slider {
-      background: var(--success);
-    }
-
-    .toggle-switch input:checked + .toggle-slider:before {
-      transform: translateX(20px);
-    }
-
-    .update-card-body {
-      padding: 14px 16px;
-    }
-
-    .update-values {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-
-    .value-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-    }
-
-    .value-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      min-width: 50px;
-      padding-top: 2px;
-      flex-shrink: 0;
-    }
-
-    .value-current {
-      font-size: 14px;
-      color: var(--text-secondary);
-      line-height: 1.4;
-      text-decoration: line-through;
-      text-decoration-color: var(--error);
-      opacity: 0.7;
-    }
-
-    .value-arrow {
-      display: flex;
-      align-items: center;
-      color: var(--success);
-      font-size: 14px;
-      padding: 0 4px;
-    }
-
-    .value-proposed-input {
-      width: 100%;
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 12px;
-      font-size: 15px;
-      font-family: inherit;
-      color: var(--text-primary);
-      background: var(--surface);
-      outline: none;
-      line-height: 1.4;
-      transition: border-color 0.15s;
-    }
-
-    .value-proposed-input:focus {
-      border-color: var(--purple-mid);
-      background: white;
-    }
-
-    .update-reasoning {
-      font-size: 13px;
-      color: var(--text-secondary);
-      line-height: 1.45;
-      font-style: italic;
-      padding: 10px 12px;
-      background: var(--surface);
-      border-radius: 8px;
-    }
-
-    /* Observation cards */
-    .observation-card {
-      background: white;
-      border: 1.5px solid var(--honey);
-      border-radius: var(--radius);
-      padding: 14px 16px;
-      margin-bottom: 12px;
-    }
-
-    .observation-card .insight {
-      font-size: 14px;
-      line-height: 1.45;
-      color: var(--text-primary);
-      margin-bottom: 6px;
-    }
-
-    .observation-card .suggestion {
-      font-size: 13px;
-      color: var(--text-secondary);
-    }
-
-    /* Approval footer */
-    .approval-footer {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: white;
-      border-top: 1px solid var(--border);
-      padding: 12px 16px;
-      padding-bottom: max(12px, env(safe-area-inset-bottom));
-      z-index: 100;
-      display: flex;
-      gap: 10px;
-    }
-
-    .approval-footer .btn {
-      flex: 1;
-      border: none;
-      border-radius: 12px;
-      padding: 14px;
-      font-size: 15px;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-
-    .btn-back-outline {
-      background: white;
-      color: var(--text-secondary);
-      border: 1.5px solid var(--border) !important;
-    }
-
-    .btn-commit {
-      background: var(--success);
-      color: white;
-      flex: 2 !important;
-    }
-
+    .approval-header { background: var(--purple-deep); color: white; padding: 16px 16px 20px; text-align: center; }
+    .approval-header h1 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+    .approval-header p { font-size: 13px; opacity: 0.7; }
+    .approval-header .merchant-name { display: inline-block; background: rgba(255,255,255,0.15); border-radius: 8px; padding: 4px 12px; font-size: 14px; font-weight: 600; margin-top: 8px; }
+    .approval-body { flex: 1; padding: 16px; padding-bottom: 100px; overflow-y: auto; }
+    .approval-section-label { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; padding: 0 2px; }
+    .update-card { background: white; border-radius: var(--radius); border: 1.5px solid var(--border); margin-bottom: 14px; overflow: hidden; box-shadow: var(--shadow-sm); transition: border-color 0.15s; }
+    .update-card.excluded { opacity: 0.45; border-color: var(--border); }
+    .update-card-top { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--purple-light); border-bottom: 1px solid var(--border); }
+    .update-card-field { font-size: 14px; font-weight: 700; color: var(--purple-deep); }
+    .toggle-wrap { display: flex; align-items: center; gap: 6px; }
+    .toggle-wrap span { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+    .toggle-switch { position: relative; width: 44px; height: 24px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--border); border-radius: 24px; transition: background 0.2s; }
+    .toggle-slider:before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+    .toggle-switch input:checked + .toggle-slider { background: var(--success); }
+    .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); }
+    .update-card-body { padding: 14px 16px; }
+    .update-values { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+    .value-row { display: flex; align-items: flex-start; gap: 10px; }
+    .value-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; min-width: 50px; padding-top: 2px; flex-shrink: 0; }
+    .value-current { font-size: 14px; color: var(--text-secondary); line-height: 1.4; text-decoration: line-through; text-decoration-color: var(--error); opacity: 0.7; }
+    .value-proposed-input { width: 100%; border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 15px; font-family: inherit; color: var(--text-primary); background: var(--surface); outline: none; line-height: 1.4; transition: border-color 0.15s; }
+    .value-proposed-input:focus { border-color: var(--purple-mid); background: white; }
+    .update-reasoning { font-size: 13px; color: var(--text-secondary); line-height: 1.45; font-style: italic; padding: 10px 12px; background: var(--surface); border-radius: 8px; }
+    .observation-card { background: white; border: 1.5px solid var(--honey); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px; }
+    .observation-card .insight { font-size: 14px; line-height: 1.45; color: var(--text-primary); margin-bottom: 6px; }
+    .observation-card .suggestion { font-size: 13px; color: var(--text-secondary); }
+    .approval-footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--border); padding: 12px 16px; padding-bottom: max(12px, env(safe-area-inset-bottom)); z-index: 100; display: flex; gap: 10px; }
+    .approval-footer .btn { flex: 1; border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.15s; }
+    .btn-back-outline { background: white; color: var(--text-secondary); border: 1.5px solid var(--border) !important; }
+    .btn-commit { background: var(--success); color: white; flex: 2 !important; }
     .btn-commit:hover { background: #059669; }
     .btn-commit:disabled { background: var(--border); color: var(--text-muted); cursor: default; }
 
-    /* ══════════════════════════════════════════
-       PAGE 3: DONE
-    ══════════════════════════════════════════ */
-
-    #donePage {
-      display: none;
-      min-height: 100dvh;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 40px 24px;
-      background: var(--surface);
-    }
-
+    /* ── Page 3: Done ── */
+    #donePage { display: none; min-height: 100dvh; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px 24px; background: var(--surface); }
     #donePage.active { display: flex; }
+    .done-icon { width: 72px; height: 72px; background: var(--success-light); border-radius: 22px; display: flex; align-items: center; justify-content: center; font-size: 36px; margin-bottom: 20px; }
+    #donePage h2 { font-size: 22px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+    #donePage .done-detail { font-size: 14px; color: var(--text-secondary); line-height: 1.5; max-width: 300px; margin-bottom: 8px; }
+    #donePage .fi-note { font-size: 12px; color: var(--purple-mid); margin-bottom: 24px; }
+    .done-actions { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 300px; }
+    .done-actions .btn { border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; width: 100%; }
+    .done-actions .btn-primary { background: var(--purple-deep); color: white; }
+    .done-actions .btn-outline { background: white; color: var(--text-primary); border: 1.5px solid var(--border) !important; }
 
-    .done-icon {
-      width: 72px;
-      height: 72px;
-      background: var(--success-light);
-      border-radius: 22px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 36px;
-      margin-bottom: 20px;
-    }
-
-    #donePage h2 {
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 6px;
-    }
-
-    #donePage .done-detail {
-      font-size: 14px;
-      color: var(--text-secondary);
-      line-height: 1.5;
-      max-width: 300px;
-      margin-bottom: 8px;
-    }
-
-    #donePage .fi-note {
-      font-size: 12px;
-      color: var(--purple-mid);
-      margin-bottom: 24px;
-    }
-
-    .done-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      width: 100%;
-      max-width: 300px;
-    }
-
-    .done-actions .btn {
-      border: none;
-      border-radius: 12px;
-      padding: 14px;
-      font-size: 15px;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      width: 100%;
-    }
-
-    .done-actions .btn-primary {
-      background: var(--purple-deep);
-      color: white;
-    }
-
-    .done-actions .btn-outline {
-      background: white;
-      color: var(--text-primary);
-      border: 1.5px solid var(--border) !important;
-    }
-
-    /* Responsive */
     @media (min-width: 600px) {
       .chat-area, .approval-body { max-width: 600px; margin: 0 auto; width: 100%; }
       .input-area > *, .approval-footer > * { max-width: 600px; }
@@ -913,26 +308,30 @@
 </head>
 <body>
 
-  <!-- ════════════════════════════════════════
-       PAGE 1: CHAT / DEBRIEF
-  ════════════════════════════════════════ -->
-  <div id="chatPage">
+  <!-- GATE SCREEN -->
+  <div class="gate-screen" id="gateScreen">
+    <div class="gate-icon">🔒</div>
+    <h2>Magic Team Access</h2>
+    <p>This tool requires a Magic ID. Open this page from your daemon shell.</p>
+    <a href="https://humans.magicid.cloud">Get Your Magic ID →</a>
+  </div>
+
+  <!-- PAGE 1: CHAT / DEBRIEF -->
+  <div id="chatPage" class="hidden">
     <div class="header">
-      <button class="header-back" onclick="goBack()" title="Back">←</button>
+      <a class="header-back" href="./index.html" title="Back to Ops">←</a>
       <div class="header-icon">🎙️</div>
       <div class="header-text">
         <h1>Call Debrief</h1>
         <p id="headerSubtext">Record & review your merchant call</p>
       </div>
     </div>
-
     <div class="merchant-bar">
       <label>Merchant</label>
       <select class="merchant-select" id="merchantSelect">
         <option value="">Auto-detect from recording</option>
       </select>
     </div>
-
     <div class="chat-area" id="chatArea">
       <div class="welcome" id="welcomeState">
         <div class="welcome-icon">🎯</div>
@@ -941,13 +340,10 @@
         <div class="hint" id="platformHint"></div>
       </div>
     </div>
-
-    <!-- Proceed to approval (shown when coaching completes) -->
     <div class="proceed-banner" id="proceedBanner">
       <div class="proceed-subtitle">✓ Debrief complete</div>
       <button class="proceed-btn" onclick="showApprovalPage()">Review Pipeline Updates →</button>
     </div>
-
     <div class="input-area" id="chatInputArea">
       <div class="audio-preview" id="audioPreview">
         <span>🎙️</span>
@@ -972,35 +368,28 @@
     </div>
   </div>
 
-  <!-- ════════════════════════════════════════
-       PAGE 2: APPROVAL
-  ════════════════════════════════════════ -->
+  <!-- PAGE 2: APPROVAL -->
   <div id="approvalPage">
     <div class="approval-header">
       <h1>Pipeline Updates</h1>
       <p>Review and edit before committing</p>
       <div class="merchant-name" id="approvalMerchantName"></div>
     </div>
-
     <div class="approval-body" id="approvalBody">
       <div class="approval-section-label" style="margin-top:4px;">Proposed Changes</div>
       <div id="updateCards"></div>
-
       <div id="observationsSection" class="hidden">
         <div class="approval-section-label" style="margin-top:20px;">Observations (Info Only)</div>
         <div id="observationCards"></div>
       </div>
     </div>
-
     <div class="approval-footer">
       <button class="btn btn-back-outline" onclick="backToChat()">← Back</button>
       <button class="btn btn-commit" id="commitBtn" onclick="commitUpdates()">✓ Commit</button>
     </div>
   </div>
 
-  <!-- ════════════════════════════════════════
-       PAGE 3: DONE
-  ════════════════════════════════════════ -->
+  <!-- PAGE 3: DONE -->
   <div id="donePage">
     <div class="done-icon">✅</div>
     <h2>Call Logged</h2>
@@ -1008,893 +397,581 @@
     <p class="fi-note" id="doneFieldIntel"></p>
     <div class="done-actions">
       <button class="btn btn-primary" onclick="resetFlow()">Log Another Call</button>
-      <button class="btn btn-outline" onclick="goBack()">Back to Customer AI</button>
+      <button class="btn btn-outline" onclick="goBack()">Back to Ops</button>
     </div>
   </div>
 
+  <!-- Daemon identity + app logic -->
+  <script type="module">
+    import { BrowserApp } from '$static/lib/js/BrowserApp.js'
 
-<script>
-// ============================================================
-// CONFIG
-// ============================================================
+    // ══════════════════════════════════════════
+    // CONFIGURATION
+    // ══════════════════════════════════════════
 
-var DEPLOYMENT_URL = 'https://script.google.com/macros/s/AKfycbxyStXsF_tFor4X11AHuGhH_v9sIvGnwFuh6n9YUKKPLKUqy9E1XAXvQeuEDDrQbDDM/exec';
+    const DEPLOYMENT_URL = '%%BACKEND_URL%%';
 
-// ============================================================
-// STATE
-// ============================================================
+    const TEAM_MAP = {
+      'thanasis.magicid.cloud': 'Thanasis'
+    };
 
-var state = {
-  userName: '',
-  phase: 'record',  // record → analysing → coaching → approval → done
-  allMerchants: [],
+    // ══════════════════════════════════════════
+    // DAEMON IDENTITY
+    // ══════════════════════════════════════════
 
-  // Audio
-  audioBase64: null,
-  audioMimeType: null,
-  isRecording: false,
+    let daemonId = null;
+    let teamMemberName = null;
+    let isAuthenticated = false;
 
-  // Analysis results
-  transcript: '',
-  merchantRecord: null,
-  interactionHistory: [],
-  analysis: null,
-
-  // Coaching
-  coachingHistory: [],
-  coachingSummary: null,
-  coachingComplete: false,
-  isProcessing: false
-};
-
-var mediaRecorder = null;
-var audioChunks = [];
-var recordingTimer = null;
-var recordingSeconds = 0;
-
-
-// ============================================================
-// INIT
-// ============================================================
-
-document.addEventListener('DOMContentLoaded', function() {
-  var params = new URLSearchParams(window.location.search);
-  state.userName = params.get('user') || '';
-  if (state.userName) {
-    document.getElementById('headerSubtext').textContent = 'Session — ' + state.userName;
-  }
-
-  // Platform hint
-  var hint = document.getElementById('platformHint');
-  var ua = navigator.userAgent || '';
-  if (/iPhone|iPad|iPod/.test(ua)) {
-    hint.innerHTML = '<strong>iPhone:</strong> Tap 🎤 to record directly, or 📎 to upload from Voice Memos.';
-  } else if (/Android/.test(ua)) {
-    hint.innerHTML = '<strong>Android:</strong> Tap 🎤 to record, or 📎 to upload an audio file.';
-  } else {
-    hint.innerHTML = '<strong>Desktop:</strong> Tap 🎤 to record, or 📎 to upload a recording.';
-  }
-
-  // Load merchants
-  callServer('getMerchantList')
-    .then(function(result) {
-      var merchants = [];
-      if (result && result.ok && result.merchants) merchants = result.merchants;
-      else if (Array.isArray(result)) merchants = result;
-      state.allMerchants = merchants;
-
-      var sel = document.getElementById('merchantSelect');
-      for (var i = 0; i < merchants.length; i++) {
-        var opt = document.createElement('option');
-        opt.value = merchants[i].id;
-        opt.textContent = merchants[i].name + ' (' + (merchants[i].category || '') + ')';
-        sel.appendChild(opt);
+    async function initDaemon() {
+      try {
+        const app = await BrowserApp.getInstance('magicops');
+        if (!app.isOrphan()) {
+          daemonId = app.getParty();
+          isAuthenticated = true;
+          teamMemberName = TEAM_MAP[daemonId] || daemonId.split('.')[0];
+        }
+      } catch (e) {
+        console.log('Daemon init error:', e.message);
       }
-    })
-    .catch(function() {});
-});
+    }
 
+    // ══════════════════════════════════════════
+    // STATE
+    // ══════════════════════════════════════════
 
-// ============================================================
-// SERVER COMMUNICATION
-// ============================================================
+    var state = {
+      phase: 'record',
+      allMerchants: [],
+      audioBase64: null,
+      audioMimeType: null,
+      isRecording: false,
+      transcript: '',
+      merchantRecord: null,
+      interactionHistory: [],
+      analysis: null,
+      coachingHistory: [],
+      coachingSummary: null,
+      coachingComplete: false,
+      isProcessing: false
+    };
 
-function callServer(action, data) {
-  var payload = Object.assign({ action: action }, data || {});
-  return fetch(DEPLOYMENT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify(payload)
-  })
-  .then(function(r) {
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    return r.json();
-  });
-}
+    var mediaRecorder = null;
+    var audioChunks = [];
+    var recordingTimer = null;
+    var recordingSeconds = 0;
 
+    // ══════════════════════════════════════════
+    // INIT
+    // ══════════════════════════════════════════
 
-// ============================================================
-// VOICE RECORDING
-// ============================================================
+    window.addEventListener('load', async function() {
+      await initDaemon();
 
-function toggleRecording() {
-  if (state.isRecording) { stopRecording(); }
-  else { startRecording(); }
-}
+      if (!isAuthenticated) {
+        document.getElementById('gateScreen').classList.add('visible');
+        return;
+      }
 
-function startRecording() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    alert('Microphone not available. Use the 📎 button to upload a file instead.');
-    return;
-  }
+      // Show chat page
+      document.getElementById('chatPage').classList.remove('hidden');
+      document.getElementById('headerSubtext').textContent = 'Session — ' + teamMemberName;
 
-  navigator.mediaDevices.getUserMedia({ audio: true })
-    .then(function(stream) {
-      var mime = 'audio/webm;codecs=opus';
-      if (!MediaRecorder.isTypeSupported(mime)) mime = 'audio/webm';
-      if (!MediaRecorder.isTypeSupported(mime)) mime = 'audio/mp4';
-      if (!MediaRecorder.isTypeSupported(mime)) mime = '';
+      // Platform hint
+      var hint = document.getElementById('platformHint');
+      var ua = navigator.userAgent || '';
+      if (/iPhone|iPad|iPod/.test(ua)) hint.innerHTML = '<strong>iPhone:</strong> Tap 🎤 to record directly, or 📎 to upload from Voice Memos.';
+      else if (/Android/.test(ua)) hint.innerHTML = '<strong>Android:</strong> Tap 🎤 to record, or 📎 to upload an audio file.';
+      else hint.innerHTML = '<strong>Desktop:</strong> Tap 🎤 to record, or 📎 to upload a recording.';
 
-      mediaRecorder = new MediaRecorder(stream, mime ? { mimeType: mime } : {});
-      audioChunks = [];
+      // Load merchants
+      callServer('getMerchantList').then(function(result) {
+        var merchants = [];
+        if (result && result.ok && result.merchants) merchants = result.merchants;
+        else if (Array.isArray(result)) merchants = result;
+        state.allMerchants = merchants;
+        var sel = document.getElementById('merchantSelect');
+        for (var i = 0; i < merchants.length; i++) {
+          var opt = document.createElement('option');
+          opt.value = merchants[i].id;
+          opt.textContent = merchants[i].name + ' (' + (merchants[i].category || '') + ')';
+          sel.appendChild(opt);
+        }
+      }).catch(function() {});
+    });
 
-      mediaRecorder.ondataavailable = function(e) { if (e.data.size > 0) audioChunks.push(e.data); };
+    // ══════════════════════════════════════════
+    // SERVER COMMUNICATION
+    // ══════════════════════════════════════════
 
-      mediaRecorder.onstop = function() {
-        stream.getTracks().forEach(function(t) { t.stop(); });
-        var blob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
-        state.audioMimeType = mediaRecorder.mimeType || 'audio/webm';
+    function callServer(action, data) {
+      var payload = Object.assign({ action: action, daemonId: daemonId, teamMember: teamMemberName }, data || {});
+      return fetch(DEPLOYMENT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(payload)
+      }).then(function(r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      });
+    }
 
-        var reader = new FileReader();
-        reader.onloadend = function() {
-          state.audioBase64 = reader.result.split(',')[1];
-          document.getElementById('audioFilename').textContent = 'Voice recording (' + fmtTime(recordingSeconds) + ')';
-          document.getElementById('audioPreview').classList.add('visible');
-          updateSendBtn();
+    // ══════════════════════════════════════════
+    // VOICE RECORDING
+    // ══════════════════════════════════════════
+
+    window.toggleRecording = function() {
+      if (state.isRecording) stopRecording(); else startRecording();
+    };
+
+    function startRecording() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('Microphone not available. Use 📎 to upload.'); return;
+      }
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+        var mime = 'audio/webm;codecs=opus';
+        if (!MediaRecorder.isTypeSupported(mime)) mime = 'audio/webm';
+        if (!MediaRecorder.isTypeSupported(mime)) mime = 'audio/mp4';
+        if (!MediaRecorder.isTypeSupported(mime)) mime = '';
+        mediaRecorder = new MediaRecorder(stream, mime ? { mimeType: mime } : {});
+        audioChunks = [];
+        mediaRecorder.ondataavailable = function(e) { if (e.data.size > 0) audioChunks.push(e.data); };
+        mediaRecorder.onstop = function() {
+          stream.getTracks().forEach(function(t) { t.stop(); });
+          var blob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+          state.audioMimeType = mediaRecorder.mimeType || 'audio/webm';
+          var reader = new FileReader();
+          reader.onloadend = function() {
+            state.audioBase64 = reader.result.split(',')[1];
+            document.getElementById('audioFilename').textContent = 'Voice recording (' + fmtTime(recordingSeconds) + ')';
+            document.getElementById('audioPreview').classList.add('visible');
+            updateSendBtn();
+          };
+          reader.readAsDataURL(blob);
         };
-        reader.readAsDataURL(blob);
-      };
-
-      mediaRecorder.start(1000);
-      state.isRecording = true;
-      recordingSeconds = 0;
-
-      document.getElementById('voiceBtn').classList.add('recording');
-      document.getElementById('voiceBtn').textContent = '⏹';
-      document.getElementById('audioPreview').classList.add('visible');
-      document.getElementById('audioFilename').textContent = 'Recording...';
-
-      var timer = document.getElementById('recDuration');
-      timer.classList.add('active');
-      recordingTimer = setInterval(function() {
-        recordingSeconds++;
-        timer.textContent = fmtTime(recordingSeconds);
-        if (recordingSeconds >= 180) stopRecording();
-      }, 1000);
-    })
-    .catch(function(err) { alert('Microphone error: ' + err.message); });
-}
-
-function stopRecording() {
-  if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
-  state.isRecording = false;
-  clearInterval(recordingTimer);
-  document.getElementById('voiceBtn').classList.remove('recording');
-  document.getElementById('voiceBtn').textContent = '🎤';
-  document.getElementById('recDuration').classList.remove('active');
-}
-
-function handleFileUpload(e) {
-  var file = e.target.files && e.target.files[0];
-  if (!file) return;
-
-  state.audioMimeType = file.type || 'audio/mp4';
-  var reader = new FileReader();
-  reader.onloadend = function() {
-    state.audioBase64 = reader.result.split(',')[1];
-    document.getElementById('audioFilename').textContent = file.name;
-    document.getElementById('audioPreview').classList.add('visible');
-    updateSendBtn();
-  };
-  reader.readAsDataURL(file);
-  e.target.value = '';
-}
-
-function removeAudio() {
-  if (state.isRecording) stopRecording();
-  state.audioBase64 = null;
-  state.audioMimeType = null;
-  document.getElementById('audioPreview').classList.remove('visible');
-  updateSendBtn();
-}
-
-function fmtTime(s) { return Math.floor(s/60) + ':' + (s%60<10?'0':'') + s%60; }
-
-
-// ============================================================
-// SEND / INPUT HANDLING
-// ============================================================
-
-function handleSend() {
-  if (state.isProcessing) return;
-
-  if (state.phase === 'record' && state.audioBase64) {
-    submitRecording();
-  } else if (state.phase === 'coaching') {
-    sendCoachingMessage();
-  }
-}
-
-function handleKeydown(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
-}
-
-function autoResize(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 110) + 'px';
-  updateSendBtn();
-}
-
-function updateSendBtn() {
-  var hasAudio = !!state.audioBase64;
-  var hasText = !!document.getElementById('textInput').value.trim();
-  var canSend = false;
-
-  if (state.phase === 'record') canSend = hasAudio;
-  else if (state.phase === 'coaching') canSend = hasText || hasAudio;
-
-  document.getElementById('sendBtn').disabled = !canSend || state.isProcessing;
-}
-
-
-// ============================================================
-// STEP 1: SUBMIT RECORDING FOR ANALYSIS
-// ============================================================
-
-function submitRecording() {
-  var welcomeEl = document.getElementById('welcomeState');
-  if (welcomeEl) welcomeEl.remove();
-
-  // Show user message
-  addMsg('user', '🎙️ Voice note submitted for analysis');
-
-  var merchantId = document.getElementById('merchantSelect').value || null;
-  var audioB64 = state.audioBase64;
-  var audioMime = state.audioMimeType;
-
-  removeAudio();
-  state.phase = 'analysing';
-  state.isProcessing = true;
-  updateSendBtn();
-
-  // Hide merchant bar
-  document.querySelector('.merchant-bar').style.display = 'none';
-
-  var proc = showProcessing('Transcribing your voice note...');
-
-  callServer('processVoiceNote', {
-    audioBase64: audioB64,
-    audioMimeType: audioMime,
-    merchantId: merchantId,
-    userName: state.userName
-  }).then(function(result) {
-    proc.remove();
-
-    if (!result.ok) {
-      addMsg('system', '⚠️ ' + (result.error || 'Analysis failed'));
-      state.phase = 'record';
-      state.isProcessing = false;
-      document.querySelector('.merchant-bar').style.display = 'flex';
-      updateSendBtn();
-      return;
+        mediaRecorder.start(1000);
+        state.isRecording = true;
+        recordingSeconds = 0;
+        document.getElementById('voiceBtn').classList.add('recording');
+        document.getElementById('voiceBtn').textContent = '⏹';
+        document.getElementById('audioPreview').classList.add('visible');
+        document.getElementById('audioFilename').textContent = 'Recording...';
+        var timer = document.getElementById('recDuration');
+        timer.classList.add('active');
+        recordingTimer = setInterval(function() {
+          recordingSeconds++;
+          timer.textContent = fmtTime(recordingSeconds);
+          if (recordingSeconds >= 180) stopRecording();
+        }, 1000);
+      }).catch(function(err) { alert('Microphone error: ' + err.message); });
     }
 
-    // Handle merchant disambiguation
-    if (result.merchantCandidates && !result.merchantRecord) {
-      handleDisambiguation(result);
-      return;
+    function stopRecording() {
+      if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+      state.isRecording = false;
+      clearInterval(recordingTimer);
+      document.getElementById('voiceBtn').classList.remove('recording');
+      document.getElementById('voiceBtn').textContent = '🎤';
+      document.getElementById('recDuration').classList.remove('active');
     }
 
-    handleAnalysisComplete(result);
-  }).catch(function(err) {
-    proc.remove();
-    addMsg('system', '⚠️ Connection error: ' + err.message);
-    state.phase = 'record';
-    state.isProcessing = false;
-    document.querySelector('.merchant-bar').style.display = 'flex';
-    updateSendBtn();
-  });
-}
-
-
-// ============================================================
-// MERCHANT DISAMBIGUATION
-// ============================================================
-
-function handleDisambiguation(result) {
-  state.transcript = result.transcript;
-
-  var html = 'I found possible matches from your recording. Which merchant was this about?';
-  var candidates = result.merchantCandidates || [];
-  for (var i = 0; i < candidates.length; i++) {
-    html += '\n\n• **' + esc(candidates[i].name) + '** (' + esc(candidates[i].category || '') + ')';
-  }
-  addMsg('assistant', formatText(html));
-
-  // Add clickable buttons for each candidate
-  var chatArea = document.getElementById('chatArea');
-  var btnWrap = document.createElement('div');
-  btnWrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;padding:0 4px;animation:fadeUp 0.25s ease-out;';
-
-  for (var c = 0; c < candidates.length; c++) {
-    (function(cand) {
-      var btn = document.createElement('button');
-      btn.style.cssText = 'background:white;border:1.5px solid var(--border);border-radius:20px;padding:8px 14px;font-size:13px;font-family:inherit;cursor:pointer;transition:all 0.15s;';
-      btn.textContent = cand.name;
-      btn.onclick = function() {
-        btnWrap.remove();
-        addMsg('user', cand.name);
-        var proc2 = showProcessing('Analysing call for ' + cand.name + '...');
-
-        callServer('completeAnalysis', {
-          merchantId: cand.id,
-          transcript: state.transcript,
-          userName: state.userName
-        }).then(function(r2) {
-          proc2.remove();
-          if (!r2.ok) { addMsg('system', '⚠️ ' + r2.error); return; }
-          r2.transcript = state.transcript;
-          handleAnalysisComplete(r2);
-        }).catch(function(err) {
-          proc2.remove();
-          addMsg('system', '⚠️ ' + err.message);
-        });
-      };
-      btnWrap.appendChild(btn);
-    })(candidates[c]);
-  }
-  chatArea.appendChild(btnWrap);
-  chatArea.scrollTop = chatArea.scrollHeight;
-}
-
-
-// ============================================================
-// ANALYSIS COMPLETE → COACHING
-// ============================================================
-
-function handleAnalysisComplete(result) {
-  state.transcript = result.transcript || state.transcript;
-  state.merchantRecord = result.merchantRecord;
-  state.interactionHistory = result.interactionHistory || [];
-  state.analysis = result.analysis;
-
-  // Update header
-  document.getElementById('headerSubtext').textContent = state.merchantRecord.name + ' — ' + (state.userName || 'Debrief');
-
-  // Show deal health card
-  if (state.analysis && state.analysis.dealHealth) {
-    showDealHealthCard(state.analysis.dealHealth);
-  }
-
-  // Check for coaching need
-  var weakPoints = (state.analysis && state.analysis.weakPoints) || [];
-
-  if (weakPoints.length > 0) {
-    addMsg('system', weakPoints.length + ' area' + (weakPoints.length > 1 ? 's' : '') + ' to explore — starting debrief');
-    startCoaching();
-  } else {
-    state.coachingSummary = { summary: 'No significant blind spots detected.', keyInsight: 'Deal progressing well.', revisedNextAction: '', fieldIntelligence: [] };
-    addMsg('system', 'Analysis looks solid — no blind spots detected');
-    state.coachingComplete = true;
-    state.isProcessing = false;
-    showProceedBanner();
-  }
-}
-
-function showDealHealthCard(dh) {
-  var chatArea = document.getElementById('chatArea');
-  var card = document.createElement('div');
-  card.className = 'deal-health-card';
-
-  var scoreClass = dh.score >= 7 ? 'good' : dh.score >= 4 ? 'moderate' : 'poor';
-  card.innerHTML = '<div class="deal-health-header">'
-    + '<div class="deal-score ' + scoreClass + '">' + dh.score + '</div>'
-    + '<div class="label"><strong>Deal Health</strong>' + (dh.momentum || '') + '</div>'
-    + '</div>'
-    + '<div class="deal-health-summary">' + esc(dh.summary || '') + '</div>';
-
-  chatArea.appendChild(card);
-  chatArea.scrollTop = chatArea.scrollHeight;
-}
-
-
-// ============================================================
-// COACHING (MULTI-TURN CHAT)
-// ============================================================
-
-function startCoaching() {
-  state.phase = 'coaching';
-  state.coachingHistory = [];
-  state.isProcessing = true;
-
-  // Enable text input for coaching responses
-  document.getElementById('textInput').disabled = false;
-  document.getElementById('textInput').placeholder = 'Reply to the coach...';
-
-  var proc = showProcessing('Coach is reviewing...');
-
-  callServer('startCoaching', {
-    transcript: state.transcript,
-    merchantRecord: state.merchantRecord,
-    interactionHistory: state.interactionHistory,
-    analysis: state.analysis,
-    userName: state.userName
-  }).then(function(result) {
-    proc.remove();
-    state.isProcessing = false;
-
-    if (!result.ok) {
-      addMsg('system', '⚠️ Coaching error: ' + result.error);
-      state.coachingComplete = true;
-      showProceedBanner();
-      return;
-    }
-
-    // Track the initial user message that startCoachingSession built
-    state.coachingHistory.push({
-      role: 'user',
-      text: 'I just recorded a voice note about my call with ' + state.merchantRecord.name + '.'
-    });
-    state.coachingHistory.push({ role: 'assistant', text: result.text });
-
-    addMsg('assistant', formatText(result.text));
-
-    if (result.isComplete) {
-      handleCoachingComplete(result.coachingSummary);
-    } else {
-      document.getElementById('textInput').focus();
-    }
-    updateSendBtn();
-  }).catch(function(err) {
-    proc.remove();
-    state.isProcessing = false;
-    addMsg('system', '⚠️ ' + err.message);
-    state.coachingComplete = true;
-    showProceedBanner();
-  });
-}
-
-function sendCoachingMessage() {
-  var input = document.getElementById('textInput');
-  var text = input.value.trim();
-  var hasAudio = !!state.audioBase64;
-
-  if ((!text && !hasAudio) || state.isProcessing) return;
-
-  if (hasAudio && !text) {
-    // Voice reply during coaching: send to trainer-style transcription
-    addMsg('user', '🎙️ Voice reply');
-    var audioB64 = state.audioBase64;
-    var audioMime = state.audioMimeType;
-    removeAudio();
-    state.isProcessing = true;
-    updateSendBtn();
-
-    var proc = showProcessing('Transcribing...');
-
-    callServer('trainer', {
-      audioBase64: audioB64,
-      audioMimeType: audioMime,
-      textInput: null,
-      conversationHistory: [],
-      userName: state.userName,
-      mode: 'transcribeOnly'
-    }).then(function(result) {
-      proc.remove();
-      if (result.ok && result.question) {
-        // Update user bubble with transcription
-        var userBubbles = document.querySelectorAll('.message.user');
-        var last = userBubbles[userBubbles.length - 1];
-        if (last) {
-          var bubble = last.querySelector('.message-bubble');
-          if (bubble) bubble.textContent = result.question;
-        }
-        sendCoachingText_(result.question);
-      } else {
-        state.isProcessing = false;
-        addMsg('system', '⚠️ Could not transcribe — please type your reply instead.');
+    window.handleFileUpload = function(e) {
+      var file = e.target.files && e.target.files[0];
+      if (!file) return;
+      state.audioMimeType = file.type || 'audio/mp4';
+      var reader = new FileReader();
+      reader.onloadend = function() {
+        state.audioBase64 = reader.result.split(',')[1];
+        document.getElementById('audioFilename').textContent = file.name;
+        document.getElementById('audioPreview').classList.add('visible');
         updateSendBtn();
-      }
-    }).catch(function() {
-      proc.remove();
-      state.isProcessing = false;
-      addMsg('system', '⚠️ Transcription failed — please type your reply.');
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    };
+
+    window.removeAudio = function() {
+      if (state.isRecording) stopRecording();
+      state.audioBase64 = null; state.audioMimeType = null;
+      document.getElementById('audioPreview').classList.remove('visible');
       updateSendBtn();
-    });
-    return;
-  }
+    };
 
-  // Text path
-  addMsg('user', text);
-  input.value = '';
-  autoResize(input);
-  sendCoachingText_(text);
-}
+    function fmtTime(s) { return Math.floor(s/60) + ':' + (s%60<10?'0':'') + s%60; }
 
-function sendCoachingText_(text) {
-  state.coachingHistory.push({ role: 'user', text: text });
-  state.isProcessing = true;
-  updateSendBtn();
+    // ══════════════════════════════════════════
+    // SEND / INPUT
+    // ══════════════════════════════════════════
 
-  var proc = showProcessing('Thinking...');
+    window.handleSend = function() {
+      if (state.isProcessing) return;
+      if (state.phase === 'record' && state.audioBase64) submitRecording();
+      else if (state.phase === 'coaching') sendCoachingMessage();
+    };
 
-  callServer('coachingTurn', {
-    coachingHistory: state.coachingHistory,
-    transcript: state.transcript,
-    merchantRecord: state.merchantRecord,
-    interactionHistory: state.interactionHistory,
-    analysis: state.analysis,
-    userName: state.userName
-  }).then(function(result) {
-    proc.remove();
-    state.isProcessing = false;
+    window.handleKeydown = function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } };
+    window.autoResize = function(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 110) + 'px'; updateSendBtn(); };
 
-    if (!result.ok) {
-      addMsg('system', '⚠️ ' + result.error);
+    function updateSendBtn() {
+      var hasAudio = !!state.audioBase64;
+      var hasText = !!document.getElementById('textInput').value.trim();
+      var canSend = false;
+      if (state.phase === 'record') canSend = hasAudio;
+      else if (state.phase === 'coaching') canSend = hasText || hasAudio;
+      document.getElementById('sendBtn').disabled = !canSend || state.isProcessing;
+    }
+
+    // ══════════════════════════════════════════
+    // STEP 1: SUBMIT RECORDING
+    // ══════════════════════════════════════════
+
+    function submitRecording() {
+      var welcomeEl = document.getElementById('welcomeState');
+      if (welcomeEl) welcomeEl.remove();
+      addMsg('user', '🎙️ Voice note submitted for analysis');
+      var merchantId = document.getElementById('merchantSelect').value || null;
+      var audioB64 = state.audioBase64;
+      var audioMime = state.audioMimeType;
+      removeAudio();
+      state.phase = 'analysing';
+      state.isProcessing = true;
       updateSendBtn();
-      return;
+      document.querySelector('.merchant-bar').style.display = 'none';
+      var proc = showProcessing('Transcribing your voice note...');
+      callServer('processVoiceNote', {
+        audioBase64: audioB64, audioMimeType: audioMime,
+        merchantId: merchantId, userName: teamMemberName
+      }).then(function(result) {
+        proc.remove();
+        if (!result.ok) {
+          addMsg('system', '⚠️ ' + (result.error || 'Analysis failed'));
+          state.phase = 'record'; state.isProcessing = false;
+          document.querySelector('.merchant-bar').style.display = 'flex';
+          updateSendBtn(); return;
+        }
+        if (result.merchantCandidates && !result.merchantRecord) {
+          handleDisambiguation(result); return;
+        }
+        handleAnalysisComplete(result);
+      }).catch(function(err) {
+        proc.remove();
+        addMsg('system', '⚠️ Connection error: ' + err.message);
+        state.phase = 'record'; state.isProcessing = false;
+        document.querySelector('.merchant-bar').style.display = 'flex';
+        updateSendBtn();
+      });
     }
 
-    state.coachingHistory.push({ role: 'assistant', text: result.text });
-    addMsg('assistant', formatText(result.text));
+    // ══════════════════════════════════════════
+    // DISAMBIGUATION
+    // ══════════════════════════════════════════
 
-    if (result.isComplete) {
-      handleCoachingComplete(result.coachingSummary);
-    } else {
-      document.getElementById('textInput').focus();
+    function handleDisambiguation(result) {
+      state.transcript = result.transcript;
+      var html = 'I found possible matches. Which merchant was this about?';
+      var candidates = result.merchantCandidates || [];
+      for (var i = 0; i < candidates.length; i++) {
+        html += '\n\n• **' + esc(candidates[i].name) + '** (' + esc(candidates[i].category || '') + ')';
+      }
+      addMsg('assistant', formatText(html));
+      var chatArea = document.getElementById('chatArea');
+      var btnWrap = document.createElement('div');
+      btnWrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;padding:0 4px;animation:fadeUp 0.25s ease-out;';
+      for (var c = 0; c < candidates.length; c++) {
+        (function(cand) {
+          var btn = document.createElement('button');
+          btn.style.cssText = 'background:white;border:1.5px solid var(--border);border-radius:20px;padding:8px 14px;font-size:13px;font-family:inherit;cursor:pointer;transition:all 0.15s;';
+          btn.textContent = cand.name;
+          btn.onclick = function() {
+            btnWrap.remove();
+            addMsg('user', cand.name);
+            var proc2 = showProcessing('Analysing call for ' + cand.name + '...');
+            callServer('completeAnalysis', {
+              merchantId: cand.id, transcript: state.transcript, userName: teamMemberName
+            }).then(function(r2) {
+              proc2.remove();
+              if (!r2.ok) { addMsg('system', '⚠️ ' + r2.error); return; }
+              r2.transcript = state.transcript;
+              handleAnalysisComplete(r2);
+            }).catch(function(err) { proc2.remove(); addMsg('system', '⚠️ ' + err.message); });
+          };
+          btnWrap.appendChild(btn);
+        })(candidates[c]);
+      }
+      chatArea.appendChild(btnWrap);
+      chatArea.scrollTop = chatArea.scrollHeight;
     }
-    updateSendBtn();
-  }).catch(function(err) {
-    proc.remove();
-    state.isProcessing = false;
-    addMsg('system', '⚠️ ' + err.message);
-    updateSendBtn();
-  });
-}
 
-function handleCoachingComplete(summary) {
-  state.coachingSummary = summary || { summary: '', keyInsight: '', revisedNextAction: '', fieldIntelligence: [] };
-  state.coachingComplete = true;
-  state.phase = 'approval';
+    // ══════════════════════════════════════════
+    // ANALYSIS COMPLETE → COACHING
+    // ══════════════════════════════════════════
 
-  // Disable text input
-  document.getElementById('textInput').disabled = true;
-  document.getElementById('textInput').placeholder = 'Debrief complete';
-
-  // Inject revised next action if coaching produced one
-  if (summary && summary.revisedNextAction && summary.revisedNextAction.length > 0) {
-    var updates = state.analysis.proposedUpdates || [];
-    var found = false;
-    for (var i = 0; i < updates.length; i++) {
-      if (updates[i].fieldName === 'nextAction') {
-        updates[i].proposedValue = summary.revisedNextAction;
-        updates[i].reasoning += ' (refined during coaching)';
-        found = true;
-        break;
+    function handleAnalysisComplete(result) {
+      state.transcript = result.transcript || state.transcript;
+      state.merchantRecord = result.merchantRecord;
+      state.interactionHistory = result.interactionHistory || [];
+      state.analysis = result.analysis;
+      document.getElementById('headerSubtext').textContent = state.merchantRecord.name + ' — ' + teamMemberName;
+      if (state.analysis && state.analysis.dealHealth) showDealHealthCard(state.analysis.dealHealth);
+      var weakPoints = (state.analysis && state.analysis.weakPoints) || [];
+      if (weakPoints.length > 0) {
+        addMsg('system', weakPoints.length + ' area' + (weakPoints.length > 1 ? 's' : '') + ' to explore');
+        startCoaching();
+      } else {
+        state.coachingSummary = { summary: 'No significant blind spots detected.', keyInsight: 'Deal progressing well.', revisedNextAction: '', fieldIntelligence: [] };
+        addMsg('system', 'Analysis looks solid — no blind spots detected');
+        state.coachingComplete = true; state.isProcessing = false;
+        showProceedBanner();
       }
     }
-    if (!found) {
-      updates.push({
-        fieldName: 'nextAction',
-        currentValue: (state.merchantRecord && state.merchantRecord.nextAction) || '(none)',
-        proposedValue: summary.revisedNextAction,
-        reasoning: 'Identified during coaching session'
-      });
-    }
-    state.analysis.proposedUpdates = updates;
-  }
 
-  showProceedBanner();
-}
-
-function showProceedBanner() {
-  document.getElementById('proceedBanner').classList.add('visible');
-}
-
-
-// ============================================================
-// APPROVAL PAGE
-// ============================================================
-
-function showApprovalPage() {
-  document.getElementById('chatPage').style.display = 'none';
-  document.getElementById('approvalPage').classList.add('active');
-
-  document.getElementById('approvalMerchantName').textContent =
-    state.merchantRecord ? state.merchantRecord.name : 'Unknown';
-
-  renderUpdateCards();
-  renderObservations();
-}
-
-function backToChat() {
-  document.getElementById('approvalPage').classList.remove('active');
-  document.getElementById('chatPage').style.display = 'flex';
-}
-
-function renderUpdateCards() {
-  var container = document.getElementById('updateCards');
-  container.innerHTML = '';
-
-  var updates = (state.analysis && state.analysis.proposedUpdates) || [];
-
-  if (updates.length === 0) {
-    container.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:14px;">'
-      + 'No field updates suggested. The interaction will still be logged.</div>';
-    return;
-  }
-
-  for (var i = 0; i < updates.length; i++) {
-    var u = updates[i];
-    var card = document.createElement('div');
-    card.className = 'update-card';
-    card.id = 'card-' + i;
-
-    card.innerHTML =
-      '<div class="update-card-top">'
-      + '<span class="update-card-field">' + esc(fieldLabel(u.fieldName)) + '</span>'
-      + '<div class="toggle-wrap">'
-      + '<span>Include</span>'
-      + '<label class="toggle-switch">'
-      + '<input type="checkbox" checked id="toggle-' + i + '" data-idx="' + i + '" onchange="toggleCard(' + i + ')">'
-      + '<span class="toggle-slider"></span>'
-      + '</label>'
-      + '</div>'
-      + '</div>'
-      + '<div class="update-card-body">'
-      + '<div class="update-values">'
-      + '<div class="value-row"><span class="value-label">From</span><span class="value-current">' + esc(u.currentValue || '(empty)') + '</span></div>'
-      + '<div class="value-row"><span class="value-label">To</span>'
-      + (u.fieldName === 'notes'
-        ? '<textarea class="value-proposed-input" id="val-' + i + '" rows="3" style="min-height:70px;resize:vertical;">' + esc(u.proposedValue || '') + '</textarea>'
-        : '<input class="value-proposed-input" id="val-' + i + '" type="text" value="' + esc(u.proposedValue || '') + '">')
-      + '</div>'
-      + '</div>'
-      + '<div class="update-reasoning">' + esc(u.reasoning || '') + '</div>'
-      + '</div>';
-
-    container.appendChild(card);
-  }
-}
-
-function toggleCard(idx) {
-  var cb = document.getElementById('toggle-' + idx);
-  var card = document.getElementById('card-' + idx);
-  if (cb.checked) {
-    card.classList.remove('excluded');
-  } else {
-    card.classList.add('excluded');
-  }
-}
-
-function renderObservations() {
-  var observations = (state.analysis && state.analysis.observations) || [];
-  var section = document.getElementById('observationsSection');
-  var container = document.getElementById('observationCards');
-  container.innerHTML = '';
-
-  if (observations.length === 0) {
-    section.classList.add('hidden');
-    return;
-  }
-
-  section.classList.remove('hidden');
-  for (var i = 0; i < observations.length; i++) {
-    var o = observations[i];
-    var card = document.createElement('div');
-    card.className = 'observation-card';
-    card.innerHTML = '<div class="insight">💡 ' + esc(o.insight || '') + '</div>'
-      + (o.actionSuggestion ? '<div class="suggestion">' + esc(o.actionSuggestion) + '</div>' : '');
-    container.appendChild(card);
-  }
-}
-
-function fieldLabel(name) {
-  var map = {
-    status: 'Status', priority: 'Priority', nextAction: 'Next Action',
-    nextActionDate: 'Next Action Date', notes: 'Notes',
-    contactName: 'Contact Name', phone: 'Phone', email: 'Email'
-  };
-  return map[name] || name;
-}
-
-
-// ============================================================
-// COMMIT
-// ============================================================
-
-function commitUpdates() {
-  var updates = (state.analysis && state.analysis.proposedUpdates) || [];
-  var approved = [];
-
-  for (var i = 0; i < updates.length; i++) {
-    var cb = document.getElementById('toggle-' + i);
-    if (cb && cb.checked) {
-      var valEl = document.getElementById('val-' + i);
-      approved.push({
-        fieldName: updates[i].fieldName,
-        proposedValue: valEl ? valEl.value : updates[i].proposedValue
-      });
-    }
-  }
-
-  document.getElementById('commitBtn').disabled = true;
-  document.getElementById('commitBtn').textContent = 'Committing...';
-
-  callServer('commitUpdates', {
-    merchantId: state.merchantRecord.id,
-    merchantName: state.merchantRecord.name,
-    userName: state.userName,
-    transcript: state.transcript,
-    coachingSummary: state.coachingSummary || null,
-    analysis: state.analysis || null,
-    approvedUpdates: approved
-  }).then(function(result) {
-    if (!result.ok) {
-      alert('Error: ' + (result.error || 'Commit failed'));
-      document.getElementById('commitBtn').disabled = false;
-      document.getElementById('commitBtn').textContent = '✓ Commit';
-      return;
+    function showDealHealthCard(dh) {
+      var chatArea = document.getElementById('chatArea');
+      var card = document.createElement('div');
+      card.className = 'deal-health-card';
+      var scoreClass = dh.score >= 7 ? 'good' : dh.score >= 4 ? 'moderate' : 'poor';
+      card.innerHTML = '<div class="deal-health-header"><div class="deal-score ' + scoreClass + '">' + dh.score + '</div>'
+        + '<div class="label"><strong>Deal Health</strong>' + (dh.momentum || '') + '</div></div>'
+        + '<div class="deal-health-summary">' + esc(dh.summary || '') + '</div>';
+      chatArea.appendChild(card);
+      chatArea.scrollTop = chatArea.scrollHeight;
     }
 
-    showDonePage(result);
-  }).catch(function(err) {
-    alert('Connection error: ' + err.message);
-    document.getElementById('commitBtn').disabled = false;
-    document.getElementById('commitBtn').textContent = '✓ Commit';
-  });
-}
+    // ══════════════════════════════════════════
+    // COACHING
+    // ══════════════════════════════════════════
 
-
-// ============================================================
-// DONE PAGE
-// ============================================================
-
-function showDonePage(result) {
-  document.getElementById('approvalPage').classList.remove('active');
-  document.getElementById('donePage').classList.add('active');
-
-  var fieldsCount = (result.updatedFields || []).length;
-  document.getElementById('doneMessage').textContent =
-    state.merchantRecord.name + ' — ' + fieldsCount + ' field' + (fieldsCount !== 1 ? 's' : '') + ' updated. Interaction logged to CRM.';
-
-  var fiNote = '';
-  if (result.fieldIntelligence && result.fieldIntelligence.insightsWritten > 0) {
-    fiNote = '🧠 ' + result.fieldIntelligence.insightsWritten + ' market insight' +
-      (result.fieldIntelligence.insightsWritten > 1 ? 's' : '') + ' captured';
-  }
-  document.getElementById('doneFieldIntel').textContent = fiNote;
-}
-
-
-// ============================================================
-// NAVIGATION
-// ============================================================
-
-function goBack() {
-  window.location.href = './index.html';
-}
-
-function resetFlow() {
-  // Full page reload for clean state
-  window.location.reload();
-}
-
-
-// ============================================================
-// UI HELPERS
-// ============================================================
-
-function addMsg(role, content) {
-  var chatArea = document.getElementById('chatArea');
-  var div = document.createElement('div');
-  div.className = 'message ' + role;
-
-  if (role !== 'system') {
-    var label = document.createElement('div');
-    label.className = 'message-label';
-    label.textContent = role === 'user' ? (state.userName || 'You') : 'Coach';
-    div.appendChild(label);
-  }
-
-  var bubble = document.createElement('div');
-  bubble.className = 'message-bubble';
-  if (role === 'assistant') {
-    bubble.innerHTML = content;
-  } else {
-    bubble.textContent = content;
-  }
-  div.appendChild(bubble);
-  chatArea.appendChild(div);
-  chatArea.scrollTop = chatArea.scrollHeight;
-}
-
-function showProcessing(text) {
-  var chatArea = document.getElementById('chatArea');
-  var el = document.createElement('div');
-  el.className = 'processing';
-  el.innerHTML = '<div class="processing-dots"><span></span><span></span><span></span></div> ' + esc(text || 'Processing...');
-  chatArea.appendChild(el);
-  chatArea.scrollTop = chatArea.scrollHeight;
-  return el;
-}
-
-function formatText(text) {
-  if (!text) return '';
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\n\n/g, '<br><br>')
-    .replace(/\n/g, '<br>');
-}
-
-function esc(str) {
-  var d = document.createElement('div');
-  d.textContent = str || '';
-  return d.innerHTML;
-}
-
-
-// ============================================================
-// SERVICE WORKER + VERSION CHECK
-// ============================================================
-
-var APP_VERSION = '2.0.0';
-
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw_customer_ai.js', { updateViaCache: 'none' })
-    .then(function(reg) {
-      setInterval(function() { reg.update(); }, 60000);
-      reg.addEventListener('updatefound', function() {
-        var nw = reg.installing;
-        if (nw) {
-          nw.addEventListener('statechange', function() {
-            if (nw.state === 'installed' && navigator.serviceWorker.controller) showUpdateBanner();
-          });
+    function startCoaching() {
+      state.phase = 'coaching'; state.coachingHistory = []; state.isProcessing = true;
+      document.getElementById('textInput').disabled = false;
+      document.getElementById('textInput').placeholder = 'Reply to the coach...';
+      var proc = showProcessing('Coach is reviewing...');
+      callServer('startCoaching', {
+        transcript: state.transcript, merchantRecord: state.merchantRecord,
+        interactionHistory: state.interactionHistory, analysis: state.analysis,
+        userName: teamMemberName
+      }).then(function(result) {
+        proc.remove(); state.isProcessing = false;
+        if (!result.ok) {
+          addMsg('system', '⚠️ Coaching error: ' + result.error);
+          state.coachingComplete = true; showProceedBanner(); return;
         }
+        state.coachingHistory.push({ role: 'user', text: 'I just recorded a voice note about my call with ' + state.merchantRecord.name + '.' });
+        state.coachingHistory.push({ role: 'assistant', text: result.text });
+        addMsg('assistant', formatText(result.text));
+        if (result.isComplete) handleCoachingComplete(result.coachingSummary);
+        else document.getElementById('textInput').focus();
+        updateSendBtn();
+      }).catch(function(err) {
+        proc.remove(); state.isProcessing = false;
+        addMsg('system', '⚠️ ' + err.message);
+        state.coachingComplete = true; showProceedBanner();
       });
-    })
-    .catch(function() {});
+    }
 
-  navigator.serviceWorker.addEventListener('controllerchange', function() { window.location.reload(); });
-}
+    function sendCoachingMessage() {
+      var input = document.getElementById('textInput');
+      var text = input.value.trim();
+      var hasAudio = !!state.audioBase64;
+      if ((!text && !hasAudio) || state.isProcessing) return;
 
-function checkVersion() {
-  fetch('version.json?_=' + Date.now()).then(function(r) { return r.json(); })
-    .then(function(d) {
-      if (d.version && d.version !== APP_VERSION) {
-        if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-          navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
-        }
-        showUpdateBanner();
+      if (hasAudio && !text) {
+        addMsg('user', '🎙️ Voice reply');
+        var a64 = state.audioBase64, aMime = state.audioMimeType;
+        removeAudio(); state.isProcessing = true; updateSendBtn();
+        var proc = showProcessing('Transcribing...');
+        callServer('trainer', { audioBase64: a64, audioMimeType: aMime, textInput: null, conversationHistory: [], userName: teamMemberName, mode: 'transcribeOnly' })
+          .then(function(r) {
+            proc.remove();
+            if (r.ok && r.question) {
+              var ub = document.querySelectorAll('.message.user');
+              var last = ub[ub.length - 1];
+              if (last) { var b = last.querySelector('.message-bubble'); if (b) b.textContent = r.question; }
+              sendCoachingText_(r.question);
+            } else { state.isProcessing = false; addMsg('system', '⚠️ Could not transcribe — please type.'); updateSendBtn(); }
+          }).catch(function() { proc.remove(); state.isProcessing = false; addMsg('system', '⚠️ Transcription failed.'); updateSendBtn(); });
+        return;
       }
-    }).catch(function() {});
-}
+      addMsg('user', text);
+      input.value = ''; autoResize(input);
+      sendCoachingText_(text);
+    }
 
-function showUpdateBanner() {
-  if (document.getElementById('updateBanner')) return;
-  var b = document.createElement('div');
-  b.id = 'updateBanner';
-  b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#1a1a2e;color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;font-size:14px;font-family:inherit;';
-  b.innerHTML = '<span>New version available</span><button onclick="window.location.reload()" style="background:#fff;color:#1a1a2e;border:none;padding:6px 16px;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px;">Refresh</button>';
-  document.body.prepend(b);
-}
+    function sendCoachingText_(text) {
+      state.coachingHistory.push({ role: 'user', text: text });
+      state.isProcessing = true; updateSendBtn();
+      var proc = showProcessing('Thinking...');
+      callServer('coachingTurn', {
+        coachingHistory: state.coachingHistory, transcript: state.transcript,
+        merchantRecord: state.merchantRecord, interactionHistory: state.interactionHistory,
+        analysis: state.analysis, userName: teamMemberName
+      }).then(function(result) {
+        proc.remove(); state.isProcessing = false;
+        if (!result.ok) { addMsg('system', '⚠️ ' + result.error); updateSendBtn(); return; }
+        state.coachingHistory.push({ role: 'assistant', text: result.text });
+        addMsg('assistant', formatText(result.text));
+        if (result.isComplete) handleCoachingComplete(result.coachingSummary);
+        else document.getElementById('textInput').focus();
+        updateSendBtn();
+      }).catch(function(err) { proc.remove(); state.isProcessing = false; addMsg('system', '⚠️ ' + err.message); updateSendBtn(); });
+    }
 
-checkVersion();
-setInterval(checkVersion, 300000);
+    function handleCoachingComplete(summary) {
+      state.coachingSummary = summary || { summary: '', keyInsight: '', revisedNextAction: '', fieldIntelligence: [] };
+      state.coachingComplete = true; state.phase = 'approval';
+      document.getElementById('textInput').disabled = true;
+      document.getElementById('textInput').placeholder = 'Debrief complete';
+      if (summary && summary.revisedNextAction) {
+        var updates = state.analysis.proposedUpdates || [];
+        var found = false;
+        for (var i = 0; i < updates.length; i++) {
+          if (updates[i].fieldName === 'nextAction') { updates[i].proposedValue = summary.revisedNextAction; updates[i].reasoning += ' (refined during coaching)'; found = true; break; }
+        }
+        if (!found) updates.push({ fieldName: 'nextAction', currentValue: (state.merchantRecord && state.merchantRecord.nextAction) || '(none)', proposedValue: summary.revisedNextAction, reasoning: 'Identified during coaching session' });
+        state.analysis.proposedUpdates = updates;
+      }
+      showProceedBanner();
+    }
 
-</script>
+    function showProceedBanner() { document.getElementById('proceedBanner').classList.add('visible'); }
+
+    // ══════════════════════════════════════════
+    // APPROVAL PAGE
+    // ══════════════════════════════════════════
+
+    window.showApprovalPage = function() {
+      document.getElementById('chatPage').style.display = 'none';
+      document.getElementById('approvalPage').classList.add('active');
+      document.getElementById('approvalMerchantName').textContent = state.merchantRecord ? state.merchantRecord.name : 'Unknown';
+      renderUpdateCards(); renderObservations();
+    };
+
+    window.backToChat = function() {
+      document.getElementById('approvalPage').classList.remove('active');
+      document.getElementById('chatPage').style.display = 'flex';
+    };
+
+    function renderUpdateCards() {
+      var container = document.getElementById('updateCards');
+      container.innerHTML = '';
+      var updates = (state.analysis && state.analysis.proposedUpdates) || [];
+      if (updates.length === 0) { container.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:14px;">No field updates suggested. Interaction will still be logged.</div>'; return; }
+      for (var i = 0; i < updates.length; i++) {
+        var u = updates[i];
+        var card = document.createElement('div'); card.className = 'update-card'; card.id = 'card-' + i;
+        card.innerHTML = '<div class="update-card-top"><span class="update-card-field">' + esc(fieldLabel(u.fieldName)) + '</span>'
+          + '<div class="toggle-wrap"><span>Include</span><label class="toggle-switch"><input type="checkbox" checked id="toggle-' + i + '" onchange="toggleCard(' + i + ')"><span class="toggle-slider"></span></label></div></div>'
+          + '<div class="update-card-body"><div class="update-values">'
+          + '<div class="value-row"><span class="value-label">From</span><span class="value-current">' + esc(u.currentValue || '(empty)') + '</span></div>'
+          + '<div class="value-row"><span class="value-label">To</span>'
+          + (u.fieldName === 'notes' ? '<textarea class="value-proposed-input" id="val-' + i + '" rows="3" style="min-height:70px;resize:vertical;">' + esc(u.proposedValue || '') + '</textarea>'
+            : '<input class="value-proposed-input" id="val-' + i + '" type="text" value="' + esc(u.proposedValue || '') + '">')
+          + '</div></div><div class="update-reasoning">' + esc(u.reasoning || '') + '</div></div>';
+        container.appendChild(card);
+      }
+    }
+
+    window.toggleCard = function(idx) {
+      var cb = document.getElementById('toggle-' + idx);
+      var card = document.getElementById('card-' + idx);
+      if (cb.checked) card.classList.remove('excluded'); else card.classList.add('excluded');
+    };
+
+    function renderObservations() {
+      var observations = (state.analysis && state.analysis.observations) || [];
+      var section = document.getElementById('observationsSection');
+      var container = document.getElementById('observationCards');
+      container.innerHTML = '';
+      if (observations.length === 0) { section.classList.add('hidden'); return; }
+      section.classList.remove('hidden');
+      for (var i = 0; i < observations.length; i++) {
+        var o = observations[i];
+        var card = document.createElement('div'); card.className = 'observation-card';
+        card.innerHTML = '<div class="insight">💡 ' + esc(o.insight || '') + '</div>' + (o.actionSuggestion ? '<div class="suggestion">' + esc(o.actionSuggestion) + '</div>' : '');
+        container.appendChild(card);
+      }
+    }
+
+    function fieldLabel(name) {
+      return { status: 'Status', priority: 'Priority', nextAction: 'Next Action', nextActionDate: 'Next Action Date', notes: 'Notes', contactName: 'Contact Name', phone: 'Phone', email: 'Email' }[name] || name;
+    }
+
+    // ══════════════════════════════════════════
+    // COMMIT
+    // ══════════════════════════════════════════
+
+    window.commitUpdates = function() {
+      var updates = (state.analysis && state.analysis.proposedUpdates) || [];
+      var approved = [];
+      for (var i = 0; i < updates.length; i++) {
+        var cb = document.getElementById('toggle-' + i);
+        if (cb && cb.checked) {
+          var valEl = document.getElementById('val-' + i);
+          approved.push({ fieldName: updates[i].fieldName, proposedValue: valEl ? valEl.value : updates[i].proposedValue });
+        }
+      }
+      document.getElementById('commitBtn').disabled = true;
+      document.getElementById('commitBtn').textContent = 'Committing...';
+      callServer('commitUpdates', {
+        merchantId: state.merchantRecord.id, merchantName: state.merchantRecord.name,
+        userName: teamMemberName, transcript: state.transcript,
+        coachingSummary: state.coachingSummary || null, analysis: state.analysis || null,
+        approvedUpdates: approved
+      }).then(function(result) {
+        if (!result.ok) { alert('Error: ' + (result.error || 'Commit failed')); document.getElementById('commitBtn').disabled = false; document.getElementById('commitBtn').textContent = '✓ Commit'; return; }
+        showDonePage(result);
+      }).catch(function(err) { alert('Connection error: ' + err.message); document.getElementById('commitBtn').disabled = false; document.getElementById('commitBtn').textContent = '✓ Commit'; });
+    };
+
+    function showDonePage(result) {
+      document.getElementById('approvalPage').classList.remove('active');
+      document.getElementById('donePage').classList.add('active');
+      var fieldsCount = (result.updatedFields || []).length;
+      document.getElementById('doneMessage').textContent = state.merchantRecord.name + ' — ' + fieldsCount + ' field' + (fieldsCount !== 1 ? 's' : '') + ' updated. Interaction logged to CRM.';
+      var fiNote = '';
+      if (result.fieldIntelligence && result.fieldIntelligence.insightsWritten > 0) fiNote = '🧠 ' + result.fieldIntelligence.insightsWritten + ' market insight' + (result.fieldIntelligence.insightsWritten > 1 ? 's' : '') + ' captured';
+      document.getElementById('doneFieldIntel').textContent = fiNote;
+    }
+
+    // ══════════════════════════════════════════
+    // NAVIGATION
+    // ══════════════════════════════════════════
+
+    window.goBack = function() { window.location.href = './index.html'; };
+    window.resetFlow = function() { window.location.reload(); };
+
+    // ══════════════════════════════════════════
+    // UI HELPERS
+    // ══════════════════════════════════════════
+
+    function addMsg(role, content) {
+      var chatArea = document.getElementById('chatArea');
+      var div = document.createElement('div'); div.className = 'message ' + role;
+      if (role !== 'system') {
+        var label = document.createElement('div'); label.className = 'message-label';
+        label.textContent = role === 'user' ? teamMemberName : 'Coach';
+        div.appendChild(label);
+      }
+      var bubble = document.createElement('div'); bubble.className = 'message-bubble';
+      if (role === 'assistant') bubble.innerHTML = content; else bubble.textContent = content;
+      div.appendChild(bubble); chatArea.appendChild(div); chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    function showProcessing(text) {
+      var chatArea = document.getElementById('chatArea');
+      var el = document.createElement('div'); el.className = 'processing';
+      el.innerHTML = '<div class="processing-dots"><span></span><span></span><span></span></div> ' + esc(text || 'Processing...');
+      chatArea.appendChild(el); chatArea.scrollTop = chatArea.scrollHeight; return el;
+    }
+
+    function formatText(text) {
+      if (!text) return '';
+      return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+    }
+
+    function esc(str) { var d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
+  </script>
 </body>
 </html>

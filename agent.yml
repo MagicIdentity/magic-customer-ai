@@ -1,0 +1,12 @@
+title: Magic Operations
+prefix: magicops
+
+scope:
+  use:
+    description: Can use Magic Operations tools
+
+grant:
+  ${party}:
+    - use
+  '%':
+    - use

@@ -6,8 +6,22 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Magic Product Trainer</title>
+
+  <!-- WebDaemon — identity only (no backend agent) -->
+  <link rel="webdaemon" href="agent.yml">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Import map for WebDaemon BrowserApp -->
+  <script type='importmap'>
+    {
+      "imports": {
+        "$static/": "https://webdaemon.online/dev/static/"
+      }
+    }
+  </script>
+
   <style>
     :root {
       --purple-deep: #4A1A8A;
@@ -42,6 +56,27 @@
       -webkit-font-smoothing: antialiased;
     }
 
+    /* ── Gate Screen ── */
+    .gate-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100dvh;
+      padding: 24px;
+      text-align: center;
+    }
+    .gate-screen.visible { display: flex; }
+    .gate-screen .gate-icon { font-size: 48px; margin-bottom: 20px; }
+    .gate-screen h2 { font-size: 22px; font-weight: 700; color: var(--purple-deep); margin-bottom: 8px; }
+    .gate-screen p { font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 24px; max-width: 320px; }
+    .gate-screen a {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--purple-deep); color: white;
+      padding: 12px 24px; border-radius: 9999px;
+      text-decoration: none; font-weight: 600; font-size: 14px;
+    }
+
     /* ── Header ── */
     .header {
       background: var(--purple-deep);
@@ -54,6 +89,23 @@
       top: 0;
       z-index: 100;
     }
+
+    .header-back {
+      background: rgba(255,255,255,0.12);
+      border: none;
+      border-radius: 8px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      flex-shrink: 0;
+      text-decoration: none;
+    }
+    .header-back:hover { background: rgba(255,255,255,0.2); }
 
     .header-icon {
       width: 36px;
@@ -194,13 +246,8 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    .message.user {
-      align-self: flex-end;
-    }
-
-    .message.assistant {
-      align-self: flex-start;
-    }
+    .message.user { align-self: flex-end; }
+    .message.assistant { align-self: flex-start; }
 
     .message-label {
       font-size: 11px;
@@ -235,32 +282,10 @@
       box-shadow: var(--shadow-sm);
     }
 
-    /* Markdown-like formatting in assistant messages */
     .message.assistant .message-bubble strong,
     .message.assistant .message-bubble b {
       color: var(--purple-deep);
       font-weight: 600;
-    }
-
-    .message.assistant .speaking-indicator {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 8px;
-      font-size: 12px;
-      color: var(--honey);
-      font-weight: 500;
-    }
-
-    .message.assistant .speaking-indicator button {
-      background: none;
-      border: 1px solid var(--honey);
-      border-radius: 6px;
-      padding: 2px 8px;
-      font-size: 11px;
-      color: var(--honey);
-      cursor: pointer;
-      font-family: inherit;
     }
 
     .msg-actions {
@@ -362,10 +387,7 @@
       gap: 8px;
     }
 
-    .text-input-wrap {
-      flex: 1;
-      position: relative;
-    }
+    .text-input-wrap { flex: 1; position: relative; }
 
     .text-input {
       width: 100%;
@@ -384,14 +406,8 @@
       transition: border-color 0.15s;
     }
 
-    .text-input:focus {
-      border-color: var(--purple-mid);
-      background: white;
-    }
-
-    .text-input::placeholder {
-      color: var(--text-muted);
-    }
+    .text-input:focus { border-color: var(--purple-mid); background: white; }
+    .text-input::placeholder { color: var(--text-muted); }
 
     .btn-icon {
       width: 44px;
@@ -432,13 +448,8 @@
     }
 
     .btn-send:hover { background: var(--purple-mid); }
-    .btn-send:disabled {
-      background: var(--border);
-      color: var(--text-muted);
-      cursor: default;
-    }
+    .btn-send:disabled { background: var(--border); color: var(--text-muted); cursor: default; }
 
-    /* Audio preview bar */
     .audio-preview {
       display: none;
       background: var(--honey-light);
@@ -452,94 +463,17 @@
     }
 
     .audio-preview.visible { display: flex; }
-
-    .audio-preview .filename {
-      flex: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
+    .audio-preview .filename { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .audio-preview .remove-btn {
-      background: none;
-      border: none;
-      font-size: 18px;
-      cursor: pointer;
-      color: var(--text-muted);
-      padding: 0 4px;
+      background: none; border: none; font-size: 18px;
+      cursor: pointer; color: var(--text-muted); padding: 0 4px;
     }
 
-    /* ── Name Gate ── */
-    .name-gate {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100dvh;
-      padding: 24px;
-      text-align: center;
-    }
-
-    .name-gate h2 {
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--purple-deep);
-      margin-bottom: 8px;
-    }
-
-    .name-gate p {
-      font-size: 14px;
-      color: var(--text-secondary);
-      margin-bottom: 24px;
-    }
-
-    .name-input {
-      width: 100%;
-      max-width: 280px;
-      border: 2px solid var(--border);
-      border-radius: 14px;
-      padding: 14px 18px;
-      font-size: 16px;
-      font-family: inherit;
-      text-align: center;
-      outline: none;
-      transition: border-color 0.15s;
-    }
-
-    .name-input:focus { border-color: var(--purple-mid); }
-
-    .name-submit {
-      margin-top: 16px;
-      background: var(--purple-deep);
-      color: white;
-      border: none;
-      border-radius: 14px;
-      padding: 14px 40px;
-      font-size: 15px;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-
-    .name-submit:hover { background: var(--purple-mid); }
-
-    /* Recording timer */
-    .rec-timer {
-      display: none;
-      font-size: 12px;
-      color: var(--error);
-      font-weight: 600;
-      font-variant-numeric: tabular-nums;
-      margin-left: 4px;
-    }
-
+    .rec-timer { display: none; font-size: 12px; color: var(--error); font-weight: 600; font-variant-numeric: tabular-nums; margin-left: 4px; }
     .rec-timer.active { display: inline; }
 
-    /* Utility */
     .hidden { display: none !important; }
 
-    /* Responsive */
     @media (min-width: 600px) {
       .chat-area { max-width: 640px; margin: 0 auto; width: 100%; }
       .input-area > * { max-width: 640px; margin: 0 auto; }
@@ -549,19 +483,18 @@
 </head>
 <body>
 
-  <!-- NAME GATE -->
-  <div id="nameGate" class="name-gate">
-    <div class="welcome-icon">📚</div>
-    <h2>Magic Product Trainer</h2>
-    <p>Your AI coach for pitching, objection handling, and product knowledge.</p>
-    <input type="text" id="nameInput" class="name-input" placeholder="Your name"
-           onkeydown="if(event.key==='Enter')submitName()">
-    <button class="name-submit" onclick="submitName()">Start Training</button>
+  <!-- GATE SCREEN (shown when no daemon identity) -->
+  <div class="gate-screen" id="gateScreen">
+    <div class="gate-icon">🔒</div>
+    <h2>Magic Team Access</h2>
+    <p>This tool requires a Magic ID. Open this page from your daemon shell.</p>
+    <a href="https://humans.magicid.cloud">Get Your Magic ID →</a>
   </div>
 
   <!-- MAIN APP -->
   <div id="mainApp" class="hidden">
     <div class="header">
+      <a class="header-back" href="./index.html" title="Back to Ops">←</a>
       <div class="header-icon">📚</div>
       <div class="header-text">
         <h1>Product Trainer</h1>
@@ -573,7 +506,6 @@
     </div>
 
     <div class="chat-area" id="chatArea">
-      <!-- Welcome / empty state -->
       <div class="welcome" id="welcomeState">
         <div class="welcome-icon">🎯</div>
         <h2>What do you need?</h2>
@@ -614,667 +546,466 @@
     </div>
   </div>
 
-<script>
-// ============================================================
-// CONFIG
-// ============================================================
+  <!-- Daemon identity + app logic -->
+  <script type="module">
+    import { BrowserApp } from '$static/lib/js/BrowserApp.js'
 
-// IMPORTANT: Replace this with your Customer AI deployment URL
-var DEPLOYMENT_URL = 'https://script.google.com/macros/s/AKfycbxyStXsF_tFor4X11AHuGhH_v9sIvGnwFuh6n9YUKKPLKUqy9E1XAXvQeuEDDrQbDDM/exec';
+    // ══════════════════════════════════════════
+    // CONFIGURATION
+    // ══════════════════════════════════════════
 
-// ============================================================
-// STATE
-// ============================================================
+    const DEPLOYMENT_URL = '%%BACKEND_URL%%';
 
-var state = {
-  userName: '',
-  conversationHistory: [],  // [{role, content}]
-  audioBase64: null,
-  audioMimeType: null,
-  isProcessing: false,
-  isRecording: false,
-  voiceEnabled: true,       // Auto-speak responses
-  isSpeaking: false
-};
+    const TEAM_MAP = {
+      'thanasis.magicid.cloud': 'Thanasis'
+    };
 
-// TTS config — will be populated with best available voice
-var ttsConfig = {
-  greekVoice: null,
-  englishVoice: null,
-  rate: 1.0,
-  pitch: 1.0
-};
+    // ══════════════════════════════════════════
+    // DAEMON IDENTITY
+    // ══════════════════════════════════════════
 
-var mediaRecorder = null;
-var audioChunks = [];
-var recordingTimer = null;
-var recordingSeconds = 0;
+    let daemonId = null;
+    let teamMemberName = null;
+    let isAuthenticated = false;
 
+    async function initDaemon() {
+      try {
+        const app = await BrowserApp.getInstance('magicops');
+        if (!app.isOrphan()) {
+          daemonId = app.getParty();
+          isAuthenticated = true;
+          teamMemberName = TEAM_MAP[daemonId] || daemonId.split('.')[0];
+        }
+      } catch (e) {
+        console.log('Daemon init error:', e.message);
+      }
+    }
 
-// ============================================================
-// NAME GATE
-// ============================================================
+    // ══════════════════════════════════════════
+    // STATE
+    // ══════════════════════════════════════════
 
-function submitName() {
-  var name = document.getElementById('nameInput').value.trim();
-  if (!name) {
-    document.getElementById('nameInput').focus();
-    return;
-  }
-  state.userName = name;
-  document.getElementById('nameGate').classList.add('hidden');
-  document.getElementById('mainApp').classList.remove('hidden');
-  document.getElementById('headerSubtext').textContent = 'Training session — ' + name;
-  document.getElementById('textInput').focus();
-}
+    window._state = {
+      conversationHistory: [],
+      audioBase64: null,
+      audioMimeType: null,
+      isProcessing: false,
+      isRecording: false,
+      voiceEnabled: true,
+      isSpeaking: false
+    };
 
+    var ttsConfig = { greekVoice: null, englishVoice: null, rate: 1.0, pitch: 1.0 };
+    var mediaRecorder = null;
+    var audioChunks = [];
+    var recordingTimer = null;
+    var recordingSeconds = 0;
 
-// ============================================================
-// VOICE RECORDING (Native MediaRecorder for PWA)
-// ============================================================
+    // ══════════════════════════════════════════
+    // INIT
+    // ══════════════════════════════════════════
 
-function toggleRecording() {
-  if (state.isRecording) {
-    stopRecording();
-  } else {
-    startRecording();
-  }
-}
+    window.addEventListener('load', async function() {
+      await initDaemon();
 
-function startRecording() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    alert('Microphone access is not available. Try uploading a voice note file instead.');
-    return;
-  }
-
-  navigator.mediaDevices.getUserMedia({ audio: true })
-    .then(function(stream) {
-      var mimeType = 'audio/webm;codecs=opus';
-      if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'audio/webm';
-      if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'audio/mp4';
-      if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = '';
-
-      var options = mimeType ? { mimeType: mimeType } : {};
-      mediaRecorder = new MediaRecorder(stream, options);
-      audioChunks = [];
-
-      mediaRecorder.ondataavailable = function(e) {
-        if (e.data.size > 0) audioChunks.push(e.data);
-      };
-
-      mediaRecorder.onstop = function() {
-        stream.getTracks().forEach(function(t) { t.stop(); });
-
-        var blob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
-        state.audioMimeType = mediaRecorder.mimeType || 'audio/webm';
-
-        var reader = new FileReader();
-        reader.onloadend = function() {
-          state.audioBase64 = reader.result.split(',')[1];
-          document.getElementById('audioFilename').textContent =
-            'Voice recording (' + formatTime(recordingSeconds) + ')';
-          document.getElementById('audioPreview').classList.add('visible');
-          updateSendButton();
-        };
-        reader.readAsDataURL(blob);
-      };
-
-      mediaRecorder.start(1000);
-      state.isRecording = true;
-      recordingSeconds = 0;
-
-      var btn = document.getElementById('voiceBtn');
-      btn.classList.add('recording');
-      btn.textContent = '⏹';
-
-      var timer = document.getElementById('recDuration');
-      timer.classList.add('active');
-      document.getElementById('audioPreview').classList.add('visible');
-      document.getElementById('audioFilename').textContent = 'Recording...';
-
-      recordingTimer = setInterval(function() {
-        recordingSeconds++;
-        timer.textContent = formatTime(recordingSeconds);
-        // Auto-stop at 3 minutes
-        if (recordingSeconds >= 180) stopRecording();
-      }, 1000);
-    })
-    .catch(function(err) {
-      alert('Could not access microphone: ' + err.message);
-    });
-}
-
-function stopRecording() {
-  if (mediaRecorder && mediaRecorder.state === 'recording') {
-    mediaRecorder.stop();
-  }
-  state.isRecording = false;
-  clearInterval(recordingTimer);
-
-  var btn = document.getElementById('voiceBtn');
-  btn.classList.remove('recording');
-  btn.textContent = '🎤';
-
-  document.getElementById('recDuration').classList.remove('active');
-}
-
-function removeAudio() {
-  if (state.isRecording) stopRecording();
-  state.audioBase64 = null;
-  state.audioMimeType = null;
-  document.getElementById('audioPreview').classList.remove('visible');
-  updateSendButton();
-}
-
-function formatTime(s) {
-  var m = Math.floor(s / 60);
-  var sec = s % 60;
-  return m + ':' + (sec < 10 ? '0' : '') + sec;
-}
-
-
-// ============================================================
-// SEND MESSAGE
-// ============================================================
-
-function send() {
-  if (state.isProcessing) return;
-
-  var textInput = document.getElementById('textInput').value.trim();
-  var hasAudio = !!state.audioBase64;
-  var hasText = !!textInput;
-
-  if (!hasAudio && !hasText) return;
-
-  // Hide welcome state
-  document.getElementById('welcomeState')?.remove();
-
-  // Show user message
-  var userDisplay = hasAudio ? '🎙️ Voice question' + (hasText ? ': ' + textInput : '') : textInput;
-  addMessage('user', userDisplay, hasAudio);
-
-  // Build payload
-  var payload = {
-    action: 'trainer',
-    conversationHistory: state.conversationHistory,
-    userName: state.userName,
-    mode: 'ask'
-  };
-
-  if (hasAudio) {
-    payload.audioBase64 = state.audioBase64;
-    payload.audioMimeType = state.audioMimeType;
-  }
-  if (hasText && !hasAudio) {
-    payload.textInput = textInput;
-  }
-
-  // Clear inputs
-  document.getElementById('textInput').value = '';
-  autoResize(document.getElementById('textInput'));
-  removeAudio();
-
-  // Show processing
-  state.isProcessing = true;
-  updateSendButton();
-  var processingEl = showProcessing();
-
-  // Call backend
-  callServer(payload)
-    .then(function(result) {
-      processingEl.remove();
-      state.isProcessing = false;
-
-      if (!result.ok) {
-        addMessage('assistant', '⚠️ ' + (result.error || 'Something went wrong. Please try again.'));
-        updateSendButton();
+      if (!isAuthenticated) {
+        document.getElementById('gateScreen').classList.add('visible');
         return;
       }
 
-      // If voice input, show the transcribed question
-      if (hasAudio && result.question) {
-        // Update user message with actual transcription
-        var userBubbles = document.querySelectorAll('.message.user');
-        var lastUserBubble = userBubbles[userBubbles.length - 1];
-        if (lastUserBubble) {
-          var bubble = lastUserBubble.querySelector('.message-bubble');
-          bubble.textContent = result.question;
-          // Keep voice tag
-          var tag = lastUserBubble.querySelector('.voice-tag');
-          if (!tag) {
-            var tagEl = document.createElement('div');
-            tagEl.className = 'voice-tag';
-            tagEl.textContent = '🎙️ Voice';
-            bubble.parentNode.insertBefore(tagEl, bubble);
-          }
-        }
-        // Store the actual question for history
-        state.conversationHistory.push({ role: 'user', content: result.question });
-      } else {
-        state.conversationHistory.push({ role: 'user', content: textInput });
-      }
-
-      // Format and show response
-      var formatted = formatResponse(result.response);
-      addMessage('assistant', formatted);
-      state.conversationHistory.push({ role: 'assistant', content: result.response });
-
-      // Auto-speak the response
-      var responseLang = result.questionLanguage || 'English';
-      speakText(result.response, responseLang);
-
-      updateSendButton();
-    })
-    .catch(function(err) {
-      processingEl.remove();
-      state.isProcessing = false;
-      addMessage('assistant', '⚠️ Connection error. Check your network and try again.');
-      updateSendButton();
+      // Show app directly — no name gate needed
+      document.getElementById('mainApp').classList.remove('hidden');
+      document.getElementById('headerSubtext').textContent = 'Training session — ' + teamMemberName;
+      document.getElementById('textInput').focus();
+      initTTS();
     });
-}
 
-function sendQuickTopic(btn) {
-  document.getElementById('textInput').value = btn.textContent;
-  send();
-}
+    // ══════════════════════════════════════════
+    // SERVER COMMUNICATION
+    // ══════════════════════════════════════════
 
+    function callServer(payload) {
+      // Inject daemon identity into every call
+      payload.daemonId = daemonId;
+      payload.teamMember = teamMemberName;
 
-// ============================================================
-// SERVER COMMUNICATION (PWA fetch pattern)
-// ============================================================
-
-function callServer(payload) {
-  return fetch(DEPLOYMENT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify(payload)
-  })
-  .then(function(response) {
-    if (!response.ok) throw new Error('HTTP ' + response.status);
-    return response.json();
-  });
-}
-
-
-// ============================================================
-// UI HELPERS
-// ============================================================
-
-function addMessage(role, content, isVoice) {
-  var chatArea = document.getElementById('chatArea');
-
-  var msgDiv = document.createElement('div');
-  msgDiv.className = 'message ' + role;
-
-  var label = document.createElement('div');
-  label.className = 'message-label';
-  label.textContent = role === 'user' ? state.userName : 'Magic Trainer';
-  msgDiv.appendChild(label);
-
-  if (isVoice && role === 'user') {
-    var tag = document.createElement('div');
-    tag.className = 'voice-tag';
-    tag.textContent = '🎙️ Voice';
-    msgDiv.appendChild(tag);
-  }
-
-  var bubble = document.createElement('div');
-  bubble.className = 'message-bubble';
-  if (role === 'assistant') {
-    bubble.innerHTML = content;
-  } else {
-    bubble.textContent = content;
-  }
-  msgDiv.appendChild(bubble);
-
-  // For assistant messages, add action buttons (copy + replay)
-  if (role === 'assistant') {
-    var actions = document.createElement('div');
-    actions.className = 'msg-actions';
-
-    // Copy button
-    var copyBtn = document.createElement('button');
-    copyBtn.className = 'msg-action-btn';
-    copyBtn.innerHTML = '📋 Copy';
-    copyBtn.onclick = function() { copyMessageText(content, copyBtn); };
-    actions.appendChild(copyBtn);
-
-    // Replay voice button
-    var replayBtn = document.createElement('button');
-    replayBtn.className = 'msg-action-btn';
-    replayBtn.innerHTML = '🔊 Replay';
-    replayBtn.onclick = function() {
-      if (state.isSpeaking) {
-        stopSpeaking();
-      } else {
-        speakText(content.replace(/<[^>]+>/g, ''), 'English');
-      }
-    };
-    actions.appendChild(replayBtn);
-
-    bubble.appendChild(actions);
-  }
-
-  chatArea.appendChild(msgDiv);
-  chatArea.scrollTop = chatArea.scrollHeight;
-}
-
-function showProcessing() {
-  var chatArea = document.getElementById('chatArea');
-  var el = document.createElement('div');
-  el.className = 'processing';
-  el.innerHTML = '<div class="processing-dots"><span></span><span></span><span></span></div> Thinking...';
-  chatArea.appendChild(el);
-  chatArea.scrollTop = chatArea.scrollHeight;
-  return el;
-}
-
-function formatResponse(text) {
-  if (!text) return '';
-  // Basic formatting: bold, line breaks
-  var formatted = text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\n\n/g, '<br><br>')
-    .replace(/\n/g, '<br>');
-  return formatted;
-}
-
-function updateSendButton() {
-  var textInput = document.getElementById('textInput').value.trim();
-  var hasInput = !!textInput || !!state.audioBase64;
-  document.getElementById('sendBtn').disabled = !hasInput || state.isProcessing;
-}
-
-function handleTextKeydown(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    send();
-  }
-}
-
-function autoResize(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-  updateSendButton();
-}
-
-
-// ============================================================
-// COPY TO CLIPBOARD
-// ============================================================
-
-function copyMessageText(htmlContent, btn) {
-  // Strip HTML to get clean text for clipboard
-  var clean = htmlContent
-    .replace(/<strong>(.+?)<\/strong>/g, '$1')
-    .replace(/<br\s*\/?>/g, '\n')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .trim();
-
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(clean).then(function() {
-      showCopied(btn);
-    }).catch(function() {
-      fallbackCopy(clean, btn);
-    });
-  } else {
-    fallbackCopy(clean, btn);
-  }
-}
-
-function fallbackCopy(text, btn) {
-  var ta = document.createElement('textarea');
-  ta.value = text;
-  ta.style.position = 'fixed';
-  ta.style.opacity = '0';
-  document.body.appendChild(ta);
-  ta.select();
-  try {
-    document.execCommand('copy');
-    showCopied(btn);
-  } catch(e) {
-    alert('Could not copy. Long-press the message to select text manually.');
-  }
-  document.body.removeChild(ta);
-}
-
-function showCopied(btn) {
-  var original = btn.innerHTML;
-  btn.innerHTML = '✓ Copied';
-  btn.classList.add('copied');
-  setTimeout(function() {
-    btn.innerHTML = original;
-    btn.classList.remove('copied');
-  }, 1500);
-}
-
-
-// ============================================================
-// TEXT-TO-SPEECH ENGINE
-// ============================================================
-
-function initTTS() {
-  // Voices load asynchronously — listen for the event
-  if (speechSynthesis.onvoiceschanged !== undefined) {
-    speechSynthesis.onvoiceschanged = loadVoices;
-  }
-  // Also try immediately (some browsers have voices ready)
-  loadVoices();
-}
-
-function loadVoices() {
-  var voices = speechSynthesis.getVoices();
-  if (!voices.length) return;
-
-  // Find best Greek voice
-  var greekVoices = voices.filter(function(v) { return v.lang.indexOf('el') === 0; });
-  // Prefer Google voices, then any
-  ttsConfig.greekVoice = greekVoices.find(function(v) { return v.name.indexOf('Google') > -1; })
-    || greekVoices[0] || null;
-
-  // Find best English voice
-  var enVoices = voices.filter(function(v) { return v.lang.indexOf('en') === 0; });
-  ttsConfig.englishVoice = enVoices.find(function(v) { return v.name.indexOf('Google') > -1 && v.lang === 'en-GB'; })
-    || enVoices.find(function(v) { return v.name.indexOf('Google') > -1; })
-    || enVoices[0] || null;
-
-  if (ttsConfig.greekVoice) Logger.log('Greek voice: ' + ttsConfig.greekVoice.name);
-  if (ttsConfig.englishVoice) Logger.log('English voice: ' + ttsConfig.englishVoice.name);
-}
-
-/**
- * Speaks the given text using browser TTS.
- * Selects Greek or English voice based on content.
- * Returns the utterance for control (pause/stop).
- */
-function speakText(text, language) {
-  if (!state.voiceEnabled || !('speechSynthesis' in window)) return null;
-
-  // Cancel any current speech
-  speechSynthesis.cancel();
-
-  // Strip markdown/HTML for cleaner speech
-  var cleanText = text
-    .replace(/<[^>]+>/g, '')           // HTML tags
-    .replace(/\*\*(.+?)\*\*/g, '$1')  // Bold markdown
-    .replace(/\*(.+?)\*/g, '$1')      // Italic markdown
-    .replace(/#{1,3}\s/g, '')          // Headers
-    .replace(/[─═•►]/g, '')           // Decorative chars
-    .replace(/\n{2,}/g, '. ')          // Double newlines → pause
-    .replace(/\n/g, '. ')             // Single newlines → pause
-    .trim();
-
-  if (!cleanText) return null;
-
-  // SpeechSynthesis has a ~15,000 char limit on some browsers.
-  // Split into chunks at sentence boundaries if needed.
-  var chunks = splitIntoChunks(cleanText, 3000);
-  var currentChunk = 0;
-
-  function speakNext() {
-    if (currentChunk >= chunks.length || !state.voiceEnabled) {
-      setSpeakingState(false);
-      return;
-    }
-
-    var utterance = new SpeechSynthesisUtterance(chunks[currentChunk]);
-
-    // Select voice based on language
-    var isGreek = (language || '').toLowerCase().indexOf('greek') > -1
-      || (language || '').toLowerCase().indexOf('el') > -1;
-
-    if (isGreek && ttsConfig.greekVoice) {
-      utterance.voice = ttsConfig.greekVoice;
-      utterance.lang = 'el-GR';
-    } else if (ttsConfig.englishVoice) {
-      utterance.voice = ttsConfig.englishVoice;
-      utterance.lang = 'en-GB';
-    }
-
-    utterance.rate = ttsConfig.rate;
-    utterance.pitch = ttsConfig.pitch;
-
-    utterance.onend = function() {
-      currentChunk++;
-      speakNext();
-    };
-
-    utterance.onerror = function() {
-      setSpeakingState(false);
-    };
-
-    speechSynthesis.speak(utterance);
-  }
-
-  setSpeakingState(true);
-  speakNext();
-}
-
-function splitIntoChunks(text, maxLen) {
-  if (text.length <= maxLen) return [text];
-  var chunks = [];
-  var remaining = text;
-  while (remaining.length > 0) {
-    if (remaining.length <= maxLen) {
-      chunks.push(remaining);
-      break;
-    }
-    // Find last sentence boundary within maxLen
-    var slice = remaining.substring(0, maxLen);
-    var lastPeriod = slice.lastIndexOf('. ');
-    var splitAt = lastPeriod > maxLen * 0.5 ? lastPeriod + 2 : maxLen;
-    chunks.push(remaining.substring(0, splitAt));
-    remaining = remaining.substring(splitAt);
-  }
-  return chunks;
-}
-
-function stopSpeaking() {
-  speechSynthesis.cancel();
-  setSpeakingState(false);
-}
-
-function setSpeakingState(isSpeaking) {
-  state.isSpeaking = isSpeaking;
-  var toggle = document.getElementById('voiceToggle');
-  if (isSpeaking) {
-    toggle.classList.add('speaking');
-  } else {
-    toggle.classList.remove('speaking');
-    // Remove any speaking indicators from messages
-    var indicators = document.querySelectorAll('.speaking-indicator');
-    indicators.forEach(function(el) { el.remove(); });
-  }
-}
-
-function toggleVoiceOutput() {
-  state.voiceEnabled = !state.voiceEnabled;
-  var icon = document.getElementById('voiceToggleIcon');
-  var toggle = document.getElementById('voiceToggle');
-
-  if (state.voiceEnabled) {
-    icon.textContent = '🔊';
-    toggle.classList.remove('off');
-  } else {
-    icon.textContent = '🔇';
-    toggle.classList.add('off');
-    stopSpeaking();
-  }
-}
-
-
-// ============================================================
-// INIT
-// ============================================================
-
-document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('nameInput').focus();
-  initTTS();
-});
-
-// ══════════════════════════════════════════
-// SERVICE WORKER + VERSION CHECK
-// ══════════════════════════════════════════
-var APP_VERSION = '2.0.0';
-
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw_customer_ai.js', { updateViaCache: 'none' })
-    .then(function(registration) {
-      setInterval(function() { registration.update(); }, 60000);
-
-      registration.addEventListener('updatefound', function() {
-        var newWorker = registration.installing;
-        if (newWorker) {
-          newWorker.addEventListener('statechange', function() {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              showUpdateBanner();
-            }
-          });
-        }
+      return fetch(DEPLOYMENT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(payload)
+      })
+      .then(function(response) {
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        return response.json();
       });
-    })
-    .catch(function(err) {
-      console.log('SW registration skipped:', err.message);
-    });
+    }
 
-  navigator.serviceWorker.addEventListener('controllerchange', function() {
-    window.location.reload();
-  });
-}
+    // ══════════════════════════════════════════
+    // VOICE RECORDING
+    // ══════════════════════════════════════════
 
-function checkVersion() {
-  fetch('version.json?_=' + Date.now())
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      if (data.version && data.version !== APP_VERSION) {
-        console.log('New version available: ' + data.version + ' (running ' + APP_VERSION + ')');
-        if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-          navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
-        }
-        showUpdateBanner();
+    window.toggleRecording = function() {
+      if (window._state.isRecording) stopRecording();
+      else startRecording();
+    };
+
+    function startRecording() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('Microphone access is not available.');
+        return;
       }
-    })
-    .catch(function() {});
-}
 
-function showUpdateBanner() {
-  if (document.getElementById('updateBanner')) return;
-  var b = document.createElement('div');
-  b.id = 'updateBanner';
-  b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#1a1a2e;color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;font-family:Outfit,sans-serif;font-size:14px;';
-  b.innerHTML = '<span>A new version is available</span><button onclick="window.location.reload()" style="background:#fff;color:#1a1a2e;border:none;padding:6px 16px;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px;">Refresh</button>';
-  document.body.prepend(b);
-}
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(function(stream) {
+          var mimeType = 'audio/webm;codecs=opus';
+          if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'audio/webm';
+          if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'audio/mp4';
+          if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = '';
 
-checkVersion();
-setInterval(checkVersion, 300000);
+          var options = mimeType ? { mimeType: mimeType } : {};
+          mediaRecorder = new MediaRecorder(stream, options);
+          audioChunks = [];
 
-</script>
+          mediaRecorder.ondataavailable = function(e) {
+            if (e.data.size > 0) audioChunks.push(e.data);
+          };
+
+          mediaRecorder.onstop = function() {
+            stream.getTracks().forEach(function(t) { t.stop(); });
+            var blob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+            window._state.audioMimeType = mediaRecorder.mimeType || 'audio/webm';
+
+            var reader = new FileReader();
+            reader.onloadend = function() {
+              window._state.audioBase64 = reader.result.split(',')[1];
+              document.getElementById('audioFilename').textContent =
+                'Voice recording (' + formatTime(recordingSeconds) + ')';
+              document.getElementById('audioPreview').classList.add('visible');
+              updateSendButton();
+            };
+            reader.readAsDataURL(blob);
+          };
+
+          mediaRecorder.start(1000);
+          window._state.isRecording = true;
+          recordingSeconds = 0;
+
+          var btn = document.getElementById('voiceBtn');
+          btn.classList.add('recording');
+          btn.textContent = '⏹';
+
+          var timer = document.getElementById('recDuration');
+          timer.classList.add('active');
+          document.getElementById('audioPreview').classList.add('visible');
+          document.getElementById('audioFilename').textContent = 'Recording...';
+
+          recordingTimer = setInterval(function() {
+            recordingSeconds++;
+            timer.textContent = formatTime(recordingSeconds);
+            if (recordingSeconds >= 180) stopRecording();
+          }, 1000);
+        })
+        .catch(function(err) { alert('Could not access microphone: ' + err.message); });
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+      window._state.isRecording = false;
+      clearInterval(recordingTimer);
+      document.getElementById('voiceBtn').classList.remove('recording');
+      document.getElementById('voiceBtn').textContent = '🎤';
+      document.getElementById('recDuration').classList.remove('active');
+    }
+
+    window.removeAudio = function() {
+      if (window._state.isRecording) stopRecording();
+      window._state.audioBase64 = null;
+      window._state.audioMimeType = null;
+      document.getElementById('audioPreview').classList.remove('visible');
+      updateSendButton();
+    };
+
+    function formatTime(s) {
+      var m = Math.floor(s / 60);
+      var sec = s % 60;
+      return m + ':' + (sec < 10 ? '0' : '') + sec;
+    }
+
+    // ══════════════════════════════════════════
+    // SEND MESSAGE
+    // ══════════════════════════════════════════
+
+    window.send = function() {
+      if (window._state.isProcessing) return;
+
+      var textInput = document.getElementById('textInput').value.trim();
+      var hasAudio = !!window._state.audioBase64;
+      var hasText = !!textInput;
+
+      if (!hasAudio && !hasText) return;
+
+      var welcomeEl = document.getElementById('welcomeState');
+      if (welcomeEl) welcomeEl.remove();
+
+      var userDisplay = hasAudio ? '🎙️ Voice question' + (hasText ? ': ' + textInput : '') : textInput;
+      addMessage('user', userDisplay, hasAudio);
+
+      var payload = {
+        action: 'trainer',
+        conversationHistory: window._state.conversationHistory,
+        userName: teamMemberName,
+        mode: 'ask'
+      };
+
+      if (hasAudio) {
+        payload.audioBase64 = window._state.audioBase64;
+        payload.audioMimeType = window._state.audioMimeType;
+      }
+      if (hasText && !hasAudio) {
+        payload.textInput = textInput;
+      }
+
+      document.getElementById('textInput').value = '';
+      autoResize(document.getElementById('textInput'));
+      removeAudio();
+
+      window._state.isProcessing = true;
+      updateSendButton();
+      var processingEl = showProcessing();
+
+      callServer(payload)
+        .then(function(result) {
+          processingEl.remove();
+          window._state.isProcessing = false;
+
+          if (!result.ok) {
+            addMessage('assistant', '⚠️ ' + (result.error || 'Something went wrong.'));
+            updateSendButton();
+            return;
+          }
+
+          if (hasAudio && result.question) {
+            var userBubbles = document.querySelectorAll('.message.user');
+            var lastUserBubble = userBubbles[userBubbles.length - 1];
+            if (lastUserBubble) {
+              var bubble = lastUserBubble.querySelector('.message-bubble');
+              bubble.textContent = result.question;
+            }
+            window._state.conversationHistory.push({ role: 'user', content: result.question });
+          } else {
+            window._state.conversationHistory.push({ role: 'user', content: textInput });
+          }
+
+          var formatted = formatResponse(result.response);
+          addMessage('assistant', formatted);
+          window._state.conversationHistory.push({ role: 'assistant', content: result.response });
+
+          speakText(result.response, result.questionLanguage || 'English');
+          updateSendButton();
+        })
+        .catch(function(err) {
+          processingEl.remove();
+          window._state.isProcessing = false;
+          addMessage('assistant', '⚠️ Connection error. Check your network and try again.');
+          updateSendButton();
+        });
+    };
+
+    window.sendQuickTopic = function(btn) {
+      document.getElementById('textInput').value = btn.textContent;
+      send();
+    };
+
+    // ══════════════════════════════════════════
+    // UI HELPERS
+    // ══════════════════════════════════════════
+
+    function addMessage(role, content, isVoice) {
+      var chatArea = document.getElementById('chatArea');
+      var msgDiv = document.createElement('div');
+      msgDiv.className = 'message ' + role;
+
+      var label = document.createElement('div');
+      label.className = 'message-label';
+      label.textContent = role === 'user' ? teamMemberName : 'Magic Trainer';
+      msgDiv.appendChild(label);
+
+      if (isVoice && role === 'user') {
+        var tag = document.createElement('div');
+        tag.className = 'voice-tag';
+        tag.textContent = '🎙️ Voice';
+        msgDiv.appendChild(tag);
+      }
+
+      var bubble = document.createElement('div');
+      bubble.className = 'message-bubble';
+      if (role === 'assistant') {
+        bubble.innerHTML = content;
+
+        var actions = document.createElement('div');
+        actions.className = 'msg-actions';
+
+        var copyBtn = document.createElement('button');
+        copyBtn.className = 'msg-action-btn';
+        copyBtn.innerHTML = '📋 Copy';
+        copyBtn.onclick = function() { copyMessageText(content, copyBtn); };
+        actions.appendChild(copyBtn);
+
+        var replayBtn = document.createElement('button');
+        replayBtn.className = 'msg-action-btn';
+        replayBtn.innerHTML = '🔊 Replay';
+        replayBtn.onclick = function() {
+          if (window._state.isSpeaking) stopSpeaking();
+          else speakText(content.replace(/<[^>]+>/g, ''), 'English');
+        };
+        actions.appendChild(replayBtn);
+
+        bubble.appendChild(actions);
+      } else {
+        bubble.textContent = content;
+      }
+      msgDiv.appendChild(bubble);
+      chatArea.appendChild(msgDiv);
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    function showProcessing() {
+      var chatArea = document.getElementById('chatArea');
+      var el = document.createElement('div');
+      el.className = 'processing';
+      el.innerHTML = '<div class="processing-dots"><span></span><span></span><span></span></div> Thinking...';
+      chatArea.appendChild(el);
+      chatArea.scrollTop = chatArea.scrollHeight;
+      return el;
+    }
+
+    function formatResponse(text) {
+      if (!text) return '';
+      return text
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+    }
+
+    function updateSendButton() {
+      var textInput = document.getElementById('textInput').value.trim();
+      var hasInput = !!textInput || !!window._state.audioBase64;
+      document.getElementById('sendBtn').disabled = !hasInput || window._state.isProcessing;
+    }
+
+    window.handleTextKeydown = function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+    };
+
+    window.autoResize = function(el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+      updateSendButton();
+    };
+
+    // ══════════════════════════════════════════
+    // COPY TO CLIPBOARD
+    // ══════════════════════════════════════════
+
+    function copyMessageText(htmlContent, btn) {
+      var clean = htmlContent
+        .replace(/<strong>(.+?)<\/strong>/g, '$1')
+        .replace(/<br\s*\/?>/g, '\n')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim();
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(clean).then(function() { showCopied(btn); }).catch(function() { fallbackCopy(clean, btn); });
+      } else {
+        fallbackCopy(clean, btn);
+      }
+    }
+
+    function fallbackCopy(text, btn) {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); showCopied(btn); } catch(e) {}
+      document.body.removeChild(ta);
+    }
+
+    function showCopied(btn) {
+      var original = btn.innerHTML;
+      btn.innerHTML = '✓ Copied'; btn.classList.add('copied');
+      setTimeout(function() { btn.innerHTML = original; btn.classList.remove('copied'); }, 1500);
+    }
+
+    // ══════════════════════════════════════════
+    // TEXT-TO-SPEECH
+    // ══════════════════════════════════════════
+
+    function initTTS() {
+      if (speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = loadVoices;
+      loadVoices();
+    }
+
+    function loadVoices() {
+      var voices = speechSynthesis.getVoices();
+      if (!voices.length) return;
+      var greekVoices = voices.filter(function(v) { return v.lang.indexOf('el') === 0; });
+      ttsConfig.greekVoice = greekVoices.find(function(v) { return v.name.indexOf('Google') > -1; }) || greekVoices[0] || null;
+      var enVoices = voices.filter(function(v) { return v.lang.indexOf('en') === 0; });
+      ttsConfig.englishVoice = enVoices.find(function(v) { return v.name.indexOf('Google') > -1 && v.lang === 'en-GB'; })
+        || enVoices.find(function(v) { return v.name.indexOf('Google') > -1; }) || enVoices[0] || null;
+    }
+
+    function speakText(text, language) {
+      if (!window._state.voiceEnabled || !('speechSynthesis' in window)) return;
+      speechSynthesis.cancel();
+      var cleanText = text.replace(/<[^>]+>/g, '').replace(/\*\*(.+?)\*\*/g, '$1').replace(/\*(.+?)\*/g, '$1')
+        .replace(/#{1,3}\s/g, '').replace(/[─═•►]/g, '').replace(/\n{2,}/g, '. ').replace(/\n/g, '. ').trim();
+      if (!cleanText) return;
+      var chunks = splitIntoChunks(cleanText, 3000);
+      var idx = 0;
+      function next() {
+        if (idx >= chunks.length || !window._state.voiceEnabled) { setSpeakingState(false); return; }
+        var u = new SpeechSynthesisUtterance(chunks[idx]);
+        var isGreek = (language || '').toLowerCase().indexOf('greek') > -1 || (language || '').toLowerCase().indexOf('el') > -1;
+        if (isGreek && ttsConfig.greekVoice) { u.voice = ttsConfig.greekVoice; u.lang = 'el-GR'; }
+        else if (ttsConfig.englishVoice) { u.voice = ttsConfig.englishVoice; u.lang = 'en-GB'; }
+        u.rate = ttsConfig.rate; u.pitch = ttsConfig.pitch;
+        u.onend = function() { idx++; next(); };
+        u.onerror = function() { setSpeakingState(false); };
+        speechSynthesis.speak(u);
+      }
+      setSpeakingState(true);
+      next();
+    }
+
+    function splitIntoChunks(text, maxLen) {
+      if (text.length <= maxLen) return [text];
+      var chunks = [], remaining = text;
+      while (remaining.length > 0) {
+        if (remaining.length <= maxLen) { chunks.push(remaining); break; }
+        var slice = remaining.substring(0, maxLen);
+        var last = slice.lastIndexOf('. ');
+        var at = last > maxLen * 0.5 ? last + 2 : maxLen;
+        chunks.push(remaining.substring(0, at));
+        remaining = remaining.substring(at);
+      }
+      return chunks;
+    }
+
+    function stopSpeaking() { speechSynthesis.cancel(); setSpeakingState(false); }
+
+    function setSpeakingState(s) {
+      window._state.isSpeaking = s;
+      var t = document.getElementById('voiceToggle');
+      if (s) t.classList.add('speaking'); else t.classList.remove('speaking');
+    }
+
+    window.toggleVoiceOutput = function() {
+      window._state.voiceEnabled = !window._state.voiceEnabled;
+      var icon = document.getElementById('voiceToggleIcon');
+      var toggle = document.getElementById('voiceToggle');
+      if (window._state.voiceEnabled) { icon.textContent = '🔊'; toggle.classList.remove('off'); }
+      else { icon.textContent = '🔇'; toggle.classList.add('off'); stopSpeaking(); }
+    };
+  </script>
 </body>
 </html>
