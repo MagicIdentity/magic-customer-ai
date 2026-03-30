@@ -423,7 +423,7 @@
     // CONFIGURATION
     // ══════════════════════════════════════════
 
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyStXsF_tFor4X11AHuGhH_v9sIvGnwFuh6n9YUKKPLKUqy9E1XAXvQeuEDDrQbDDM/exec';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-g8KnKVm-3mouyuBoiP18bfALkvPPvXyaJ6HlvSSOMtgu40t8SXbN8l-tnknsu0Y/exec';
 
     // Daemon-to-team-member mapping
     // Add entries as team members get their daemon IDs
@@ -613,20 +613,13 @@
         };
 
         const response = await fetch(APPS_SCRIPT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          redirect: 'follow'
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify(payload)
         });
 
         // Apps Script redirects on POST — handle manually
-        let data;
-        if (response.redirected) {
-          const redirected = await fetch(response.url);
-          data = await redirected.json();
-        } else {
-          data = await response.json();
-        }
+        const data = await response.json();
 
         if (data.ok) {
           const cleaned = cleanResponse(data.text || data.reply || '');
