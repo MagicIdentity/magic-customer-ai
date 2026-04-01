@@ -457,17 +457,15 @@
     async function initDaemon() {
       try {
         const app = await BrowserApp.getInstance('magicops');
-        if (!app.isOrphan()) {
-          daemonId = app.getParty();
-          isAuthenticated = true;
-          teamMemberName = TEAM_MAP[daemonId] || daemonId.split('.')[0];
-          console.log('🔮 Authenticated: ' + daemonId + ' → ' + teamMemberName);
-        } else {
-          console.log('🔮 Orphan mode — no daemon shell');
-        }
-      } catch (e) {
-        console.log('🔮 Daemon init error: ' + e.message);
-      }
+        const user = app.getParty();
+        if (!user || user !== 'thanasis.magicid.cloud') return;
+        daemonId = user;
+        isAuthenticated = true;
+        teamMemberName = TEAM_MAP[daemonId] || daemonId.split('.')[0];
+        console.log('🔮 Authenticated: ' + daemonId + ' → ' + teamMemberName);
+    } catch (e) {
+      console.log('🔮 Daemon init error: ' + e.message);
+    }
     }
 
     // ══════════════════════════════════════════

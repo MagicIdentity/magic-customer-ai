@@ -571,11 +571,11 @@
     async function initDaemon() {
       try {
         const app = await BrowserApp.getInstance('magicops');
-        if (!app.isOrphan()) {
-          daemonId = app.getParty();
-          isAuthenticated = true;
-          teamMemberName = TEAM_MAP[daemonId] || daemonId.split('.')[0];
-        }
+        const user = app.getParty();
+        if (!user || user !== 'thanasis.magicid.cloud') return;
+        daemonId = user;
+        isAuthenticated = true;
+        teamMemberName = TEAM_MAP[daemonId] || daemonId.split('.')[0];
       } catch (e) {
         console.log('Daemon init error:', e.message);
       }
